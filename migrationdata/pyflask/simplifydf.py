@@ -11,23 +11,24 @@ def simplify(df):
 
     df = df[['access_device', 'ages_ranges', 'citizenship', 'genders', 'geo_locations', 'scholarities', 'dau_audience',
              'mau_audience']]
-    df = df.dropna(subset=['access_device', 'ages_ranges', 'citizenship', 'genders', 'geo_locations', 'scholarities'])
-    access_device_df = pd.pivot_table(df[df['ages_ranges'] == "{u'min': 13}"][df['genders'] == 0],
-                                      values=['dau_audience', 'mau_audience'], index='citizenship',
-                                      columns=['access_device'], aggfunc=np.sum, fill_value=-1)
-    genders_df = pd.pivot_table(df[df['ages_ranges'] == "{u'min': 13}"], values=['dau_audience', 'mau_audience'],
-                                index='citizenship', columns='genders', aggfunc=np.sum, fill_value=-1)
-    ages_ranges_df = pd.pivot_table(df[df['genders'] == 0], values=['dau_audience', 'mau_audience'],
-                                    index='citizenship', columns='ages_ranges', aggfunc=np.sum, fill_value=-1)
-    scholarities_df = pd.pivot_table(df[df['ages_ranges'] == "{u'min': 13}"][df['genders'] == 0],
-                                     values=['dau_audience', 'mau_audience'], index='citizenship',
-                                     columns='scholarities', aggfunc=np.sum, fill_value=-1)
+    access_device_df = pd.pivot_table(
+        df[df['ages_ranges'] == "{u'min': 13}"][df['genders'] == 0][df['scholarities'].isnull()],
+        values=['dau_audience', 'mau_audience'], index='citizenship', columns=['access_device'], fill_value=-1)
+    ages_ranges_df = pd.pivot_table(df[df['genders'] == 0][df['scholarities'].isnull()][df['access_device'].isnull()],
+                                    values=['dau_audience', 'mau_audience'], index='citizenship', columns='ages_ranges',
+                                    fill_value=-1)
+    genders_df = pd.pivot_table(
+        df[df['ages_ranges'] == "{u'min': 13}"][df['scholarities'].isnull()][df['access_device'].isnull()],
+        values=['dau_audience', 'mau_audience'], index='citizenship', columns='genders', fill_value=-1)
+    scholarities_df = pd.pivot_table(
+        df[df['ages_ranges'] == "{u'min': 13}"][df['genders'] == 0][df['access_device'].isnull()],
+        values=['dau_audience', 'mau_audience'], index='citizenship', columns='scholarities', fill_value=-1)
     cdf = pd.concat([access_device_df, ages_ranges_df, genders_df, scholarities_df], axis=1)
     cdf.columns = collist
     cdf = cdf.reset_index()
     for index, rows in cdf.iterrows():
         if cdf.citizenship[index] == "{u'not': [6015559470583], u'name': u'All - Expats'}":
-            cdf.citizenship[index] = "All Countries"
+            cdf.citizenship[index] = "Locals"
         else:
             cdf.citizenship[index] = cdf.loc[index, 'citizenship'][
                                      cdf.loc[index, 'citizenship'].find('(') + 1:cdf.loc[index, 'citizenship'].find(')')]
