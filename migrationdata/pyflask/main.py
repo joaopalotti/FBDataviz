@@ -10,15 +10,16 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    li_country = []
-    li_path = []
+    countries = {}
     for i in glob('./static/??_dataframe*.csv.gz'):
         country_code = os.path.basename(i)[:2]
-        li_country.append(mapping.convert_country_code(country_code))
-        li_path.append(country_code)
-    length = len(li_country)
+        countries[country_code] = mapping.convert_country_code(country_code)
+    length = len(countries)
+
+    # Sort list of countries by their names instead of by their code
+    country_list = sorted(countries.items(), key=lambda x: x[1])
+    li_path, li_country = zip(*country_list)
     return render_template("index.html", list_path=li_path, list_country=li_country, length=length)
-    # return 'This is the homepage %s' % request.method
 
 @app.route('/country/<countrycode>', methods=['get','post'])
 def country(countrycode):
