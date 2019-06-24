@@ -74,18 +74,59 @@ def country(countrycode):
 
     df = pd.read_csv(path)
     df = simplifydf.simplify(df)
-    df = df[df['citizenship'] != 'All'][df['citizenship'] != 'All Countries']
+    df = df[df['citizenship'] != 'All'][df['citizenship'] != 'Locals']
     fig, ax = plt.subplots(figsize=(9.5, 6))
-    # df.set_index('citizenship').sort_values('Total_mau', ascending=False).head(10)['Total_mau'].plot(kind='barh')
-    # ax.set_xlabel('', labelpad=15)
-    # ax.set_ylabel('', labelpad=30)
+    df.set_index('citizenship').sort_values('Total_mau', ascending=False).head(10)['Total_mau'].plot(kind='barh')
+    ax.set_xlabel('', labelpad=15)
+    ax.set_ylabel('', labelpad=30)
     plt.savefig('static/plotcountry{}-form.png'.format(countrycode), transparent=True)
     encoded = base64.b64encode(open('static/plotcountry{}-form.png'.format(countrycode), 'rb').read()).decode()
     html2 = 'data:image/png;base64,{}'.format(encoded)
     os.remove('static/plotcountry{}-form.png'.format(countrycode))
 
     if request.method == 'POST':
-        df.set_index('citizenship').sort_values('Total_mau', ascending=False).head(10)['Total_mau'].plot(kind='barh')
+
+        #new barplot:
+        if request.form.getlist('gender')[0]=='both':
+            tempdf=maindf[maindf['genders']==0][maindf['ages_ranges']=="{u'min': 13}"]
+        elif request.form.getlist('gender')[0]=='male':
+            tempdf=maindf[maindf['genders']==1][maindf['ages_ranges']=="{u'min': 13}"]
+        elif request.form.getlist('gender')[0]=='female':
+            tempdf=maindf[maindf['genders']==2][maindf['ages_ranges']=="{u'min': 13}"]
+
+        if request.form.getlist('scholarities')[0]=='all':
+            tempdf=tempdf[tempdf['scholarities'].isnull()]
+        elif request.form.getlist('scholarities')[0]=='graduated':
+            tempdf=tempdf[tempdf['scholarities']=="{u'name': u'Graduated', u'or': [3, 7, 8, 9, 11]}"]
+        elif request.form.getlist('scholarities')[0]=='nodegree':
+            tempdf=tempdf[tempdf['scholarities']=="{u'name': u'No Degree', u'or': [1, 12, 13]}"]
+        elif request.form.getlist('scholarities')[0]=='highschool':
+            tempdf=tempdf[tempdf['scholarities']=="{u'name': u'High School', u'or': [2, 4, 5, 6, 10]}"]
+
+        if request.form.getlist('os')[0]=='all':
+            tempdf=tempdf[tempdf['access_device'].isnull()]
+        elif request.form.getlist('os')[0]=='ios':
+            tempdf=tempdf[tempdf['access_device']=="{u'or': [6004384041172], u'name': u'iOS'}"]
+        elif request.form.getlist('os')[0] == 'android':
+            tempdf = tempdf[tempdf['access_device'] == "{u'or': [6004386044572], u'name': u'Android'}"]
+        elif request.form.getlist('os')[0] == 'others':
+            tempdf = tempdf[tempdf['access_device'] == "{u'not': [6004384041172, 6004386044572], u'name': u'Other'}"]
+
+
+        tempdf=tempdf[['citizenship', 'mau_audience']]
+        tempdf = tempdf.dropna(subset=['citizenship'])
+
+
+        for index, rows in tempdf.iterrows():
+            if tempdf.citizenship[index] == "{u'not': [6015559470583], u'name': u'All - Expats'}":
+                tempdf.citizenship[index] = "Locals"
+            else:
+                tempdf.citizenship[index] = tempdf.loc[index, 'citizenship'][
+                                            tempdf.loc[index, 'citizenship'].find('(') + 1:tempdf.loc[index, 'citizenship'].find(
+                                             ')')]
+        tempdf = tempdf[tempdf['citizenship'] != 'Locals'][tempdf['citizenship'] != 'All']
+
+        tempdf.set_index('citizenship').sort_values('mau_audience', ascending=False).head(10)['mau_audience'].plot(kind='barh')
         ax.set_xlabel('', labelpad=15)
         ax.set_ylabel('', labelpad=30)
         plt.savefig('static/plotcountry{}-form.png'.format(countrycode), transparent=True)
@@ -93,32 +134,12 @@ def country(countrycode):
         html2 = 'data:image/png;base64,{}'
         html2 = html2.format(encoded)
         os.remove('static/plotcountry{}-form.png'.format(countrycode))
-        as_dict = request.form.getlist('myform')
         print(request.form.getlist('gender'))
-        if request.form.getlist('gender')[0] == 'MaleFemale':
-            print('check')
+
         return render_template("countryinfo.html", cc=countrycode, country=country, attribute=attribute, value=value,
                                length=len(attribute), htmlstring1=html1, htmlstring2=html2)
 
-    return render_template("countryinfo.html", cc=countrycode, country=country, attribute=attribute, value=value,length=len(attribute),
-                           htmlstring1=html1, htmlstring2=html2)
-
-
-    # if request.method == 'POST':
-    #     df.set_index('citizenship').sort_values('Total_mau', ascending=False).head(10)['Total_mau'].plot(kind='barh')
-    #     ax.set_xlabel('', labelpad=15)
-    #     ax.set_ylabel('', labelpad=30)
-    #     plt.savefig('static/plotcountry{}-form.png'.format(countrycode), transparent=True)
-    #     encoded = base64.b64encode(open('static/plotcountry{}-form.png'.format(countrycode), 'rb').read()).decode()
-    #     html = 'data:image/png;base64,{}'
-    #     html = html.format(encoded)
-    #     return render_template("countryinfo.html",cc=countrycode,country=country,attribute=attribute,value=value,length=len(attribute), htmlstring=html)
-    # img = io.BytesIO()
-    # plt.savefig(img, format='png')
-    # img.seek(0)
-    # a = base64.b64encode(img.getvalue()).decode()
-    # plt.close()
-    # b = 'data:image/png;base64,{}'.format(a)
+    return render_template("countryinfo.html", cc=countrycode, country=country, attribute=attribute, value=value, length=len(attribute), htmlstring1=html1, htmlstring2=html2)
 
 @app.route('/map/<countrycode>')
 def map(countrycode):
