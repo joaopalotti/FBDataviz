@@ -11,7 +11,7 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     countries = {}
-    for i in glob('./static/??_dataframe*.csv.gz'):
+    for i in glob('./static/original/??_dataframe*.csv.gz'):
         country_code = os.path.basename(i)[:2]
         countries[country_code] = mapping.convert_country_code(country_code)
     length = len(countries)
@@ -26,18 +26,18 @@ def country(countrycode):
 
     # img = io.BytesIO()
     country = mapping.convert_country_code(countrycode)
-    # TODO: do not need a for here....
-    for i in glob('static/{}_data*.csv.gz'.format(countrycode)):
-        path = i
+    path = glob('static/simplified/{}.csv.gz'.format(countrycode))[0]
+
     df = pd.read_csv(path)
-    df = simplifydf.simplify(df)
-    df = df[df['citizenship'] != 'All'][df['citizenship'] != 'All Countries']
+    df = df[df['citizenship'].apply(lambda x : x not in set(['All', 'All Countries']))]
+
     fig, ax = plt.subplots(figsize=(9.5, 6))
-    df.set_index('citizenship').sort_values('Total_mau', ascending=False).head(10)['Total_mau'].plot(kind='barh')
+    df.set_index('citizenship').sort_values('Total_mau', ascending=False).head(10)['Total_mau'][::-1].plot(kind='barh')
     ax.set_xlabel('', labelpad=15)
     ax.set_ylabel('', labelpad=30)
+
     plt.savefig('static/plotcountry{}.png'.format(countrycode), transparent=True)
-    encoded = base64.b64encode(open('static/plotcountry{}.png'.format(countrycode).format(countrycode), 'rb').read()).decode()
+    encoded = base64.b64encode(open('static/plotcountry{}.png'.format(countrycode), 'rb').read()).decode()
     html1 = 'data:image/png;base64,{}'.format(encoded)
     os.remove('static/plotcountry{}.png'.format(countrycode))
 
@@ -73,7 +73,6 @@ def country(countrycode):
     value=countrydf['Values'].tolist()
 
     df = pd.read_csv(path)
-    df = simplifydf.simplify(df)
     df = df[df['citizenship'] != 'All'][df['citizenship'] != 'All Countries']
     fig, ax = plt.subplots(figsize=(9.5, 6))
     # df.set_index('citizenship').sort_values('Total_mau', ascending=False).head(10)['Total_mau'].plot(kind='barh')
@@ -122,9 +121,8 @@ def country(countrycode):
 
 @app.route('/map/<countrycode>')
 def map(countrycode):
-    path = 'ok'
-    for i in glob('static/{}_data*.csv.gz'.format(countrycode)):
-        path = i
+    path = glob('static/{}_data*.csv.gz'.format(countrycode))[0]
+
     df = pd.read_csv(path)
     df = simplifydf.simplify(df)
     bmap = plotmap.baseMap(data=df, shapefile='../places.geojson')
