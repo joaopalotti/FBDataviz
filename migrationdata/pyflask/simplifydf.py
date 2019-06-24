@@ -1,5 +1,8 @@
 import pandas as pd
 import numpy as np
+from glob import glob
+import os
+
 def simplify(df):
     collist = ['Other_dau', 'iOS_dau', 'Android_dau', 'Other_mau', 'iOS_mau', 'Android_mau',
               '13-14_dau', '15-19_dau', '15-24_dau', '20-24_dau', '25-29_dau', '30-34_dau', '35-39_dau', '40-44_dau',
@@ -32,3 +35,18 @@ def simplify(df):
             cdf.citizenship[index] = cdf.loc[index, 'citizenship'][
                                      cdf.loc[index, 'citizenship'].find('(') + 1:cdf.loc[index, 'citizenship'].find(')')]
     return cdf
+
+
+if __name__ == "__main__":
+    print("Simplifying all the files in ./static/original/...")
+
+    for f in glob("./static/original/??_dataframe_collected_finished_*.csv.gz"):
+
+        country_code = os.path.basename(f)[:2]
+        df = pd.read_csv(f)
+        dfs = simplify(df)
+
+        dfs.to_csv("./static/simplified/%s.csv.gz" % (country_code), index=False)
+
+
+
