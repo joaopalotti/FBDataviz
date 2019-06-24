@@ -12,9 +12,10 @@ app = Flask(__name__)
 def index():
     li_country = []
     li_path = []
-    for i in glob('static/??_dataframe*.csv.gz'):
-        li_country.append(mapping.convert_country_code(i[7:9]))
-        li_path.append(i[7:9])
+    for i in glob('./static/??_dataframe*.csv.gz'):
+        country_code = os.path.basename(i)[:2]
+        li_country.append(mapping.convert_country_code(country_code))
+        li_path.append(country_code)
     length = len(li_country)
     return render_template("index.html", list_path=li_path, list_country=li_country, length=length)
     # return 'This is the homepage %s' % request.method
@@ -24,6 +25,7 @@ def country(countrycode):
 
     # img = io.BytesIO()
     country = mapping.convert_country_code(countrycode)
+    # TODO: do not need a for here....
     for i in glob('static/{}_data*.csv.gz'.format(countrycode)):
         path = i
     df = pd.read_csv(path)
@@ -124,19 +126,19 @@ def map(countrycode):
         path = i
     df = pd.read_csv(path)
     df = simplifydf.simplify(df)
-    bmap = plotmap.baseMap(data=df, shapefile='static/QatarMigration.geojson')
+    bmap = plotmap.baseMap(data=df, shapefile='../places.geojson')
     bmap.createGroup('Gender')
     g = plotmap.geojson(bmap, 'Gender', 'Total', locationcol='citizenship')
     g.colorMap(column1='Total_dau', threshold_min1=0)
-    g.createMap(key='citizenship')
+    g.createMap(key='name')
 
     g = plotmap.geojson(bmap, 'Gender', 'Male', locationcol='citizenship')
     g.colorMap(column1='Male_dau', threshold_min1=0)
-    g.createMap(key='citizenship')
+    g.createMap(key='name')
 
     g = plotmap.geojson(bmap, 'Gender', 'Female', locationcol='citizenship')
     g.colorMap(column1='Female_dau', threshold_min1=0)
-    g.createMap(key='citizenship')
+    g.createMap(key='name')
     folium.LayerControl().add_to(bmap.map)
     return render_template_string(bmap.map.get_root().render())
 
