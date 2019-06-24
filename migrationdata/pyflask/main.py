@@ -29,7 +29,7 @@ def country(countrycode):
     path = glob('static/simplified/{}.csv.gz'.format(countrycode))[0]
 
     df = pd.read_csv(path)
-    df = df[df['citizenship'].apply(lambda x : x not in set(['All', 'All Countries']))]
+    df = df[df['citizenship'].apply(lambda x : x not in set(['All', 'Locals']))]
 
     fig, ax = plt.subplots(figsize=(9.5, 6))
     df.set_index('citizenship').sort_values('Total_mau', ascending=False).head(10)['Total_mau'][::-1].plot(kind='barh')
@@ -67,31 +67,32 @@ def country(countrycode):
             i = i + 1
             if i == 5:
                 i = 1
-    countrydf = pd.DataFrame(columns=['Attribute', 'Values'])
-    countrydf['Attribute'], countrydf['Values'] = lists[0], lists[2]
-    attribute=countrydf['Attribute'].tolist()
-    value=countrydf['Values'].tolist()
+    attribute, value = lists[0], lists[2]
 
-    df = pd.read_csv(path)
-    df = df[df['citizenship'] != 'All'][df['citizenship'] != 'Locals']
     fig, ax = plt.subplots(figsize=(9.5, 6))
-    df.set_index('citizenship').sort_values('Total_mau', ascending=False).head(10)['Total_mau'].plot(kind='barh')
+    df.set_index('citizenship').sort_values('Total_mau', ascending=False).head(10)[::-1]['Total_mau'].plot(kind='barh')
     ax.set_xlabel('', labelpad=15)
     ax.set_ylabel('', labelpad=30)
+
     plt.savefig('static/plotcountry{}-form.png'.format(countrycode), transparent=True)
     encoded = base64.b64encode(open('static/plotcountry{}-form.png'.format(countrycode), 'rb').read()).decode()
     html2 = 'data:image/png;base64,{}'.format(encoded)
     os.remove('static/plotcountry{}-form.png'.format(countrycode))
 
     if request.method == 'POST':
+        path = glob('./static/original/%s_dataframe_collected_finished_*.csv.gz' % (countrycode))[0]
+        maindf = pd.read_csv(path)
+
+        # This form is empty. Maybe you forgot to push modifications in the templates?
+        print("FORM:", request.form)
 
         #new barplot:
-        if request.form.getlist('gender')[0]=='both':
-            tempdf=maindf[maindf['genders']==0][maindf['ages_ranges']=="{u'min': 13}"]
-        elif request.form.getlist('gender')[0]=='male':
-            tempdf=maindf[maindf['genders']==1][maindf['ages_ranges']=="{u'min': 13}"]
+        if request.form.getlist('gender')[0] == 'both':
+            tempdf = maindf[(maindf['genders'] == 0) & (maindf['ages_ranges'] == "{u'min': 13}")]
+        elif request.form.getlist('gender')[0] == 'male':
+            tempdf = maindf[maindf['genders']==1][maindf['ages_ranges']=="{u'min': 13}"]
         elif request.form.getlist('gender')[0]=='female':
-            tempdf=maindf[maindf['genders']==2][maindf['ages_ranges']=="{u'min': 13}"]
+            tempdf = maindf[maindf['genders']==2][maindf['ages_ranges']=="{u'min': 13}"]
 
         if request.form.getlist('scholarities')[0]=='all':
             tempdf=tempdf[tempdf['scholarities'].isnull()]
@@ -142,7 +143,7 @@ def country(countrycode):
 
 @app.route('/map/<countrycode>')
 def map(countrycode):
-    path = glob('static/{}_data*.csv.gz'.format(countrycode))[0]
+    path = glob('./static/original/{}_data*.csv.gz'.format(countrycode))[0]
 
     df = pd.read_csv(path)
     df = simplifydf.simplify(df)
