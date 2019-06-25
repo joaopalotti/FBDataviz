@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 
+
 @app.route('/')
 def index():
     countries = {}
@@ -22,6 +23,77 @@ def index():
     return render_template("index.html", list_path=li_path, list_country=li_country, length=length)
 
 
+
+
+@app.route('/plotgraph')
+def plotgraph():
+    gender = request.args.get('gender')
+    scholarities = request.args.get('scholarities')
+    os_var = request.args.get('os')
+    countrycode = request.args.get('cc')
+    path = glob('./static/original/%s_dataframe_collected_finished_*.csv.gz' % (countrycode))[0]
+    maindf = pd.read_csv(path)
+
+    if gender == 'both':
+        tempdf = maindf[(maindf['genders'] == 0) & (maindf['ages_ranges'] == "{u'min': 13}")]
+    elif gender == 'male':
+        tempdf = maindf[(maindf['genders'] == 1) & (maindf['ages_ranges'] == "{u'min': 13}")]
+    elif gender == 'female':
+        tempdf = maindf[(maindf['genders'] == 2) & (maindf['ages_ranges'] == "{u'min': 13}")]
+
+    if scholarities == 'all':
+        tempdf = tempdf[tempdf['scholarities'].isnull()]
+    elif scholarities == 'graduated':
+        tempdf = tempdf[tempdf['scholarities'] == "{u'name': u'Graduated', u'or': [3, 7, 8, 9, 11]}"]
+    elif scholarities == 'nodegree':
+        tempdf = tempdf[tempdf['scholarities'] == "{u'name': u'No Degree', u'or': [1, 12, 13]}"]
+    elif scholarities == 'highschool':
+        tempdf = tempdf[tempdf['scholarities'] == "{u'name': u'High School', u'or': [2, 4, 5, 6, 10]}"]
+
+    if os_var == 'all':
+        tempdf = tempdf[tempdf['access_device'].isnull()]
+    elif os_var == 'ios':
+        tempdf = tempdf[tempdf['access_device'] == "{u'or': [6004384041172], u'name': u'iOS'}"]
+    elif os_var == 'android':
+        tempdf = tempdf[tempdf['access_device'] == "{u'or': [6004386044572], u'name': u'Android'}"]
+    elif os_var == 'others':
+        tempdf = tempdf[tempdf['access_device'] == "{u'not': [6004384041172, 6004386044572], u'name': u'Other'}"]
+
+
+    print(tempdf.citizenship.unique())
+    print('-------------')
+    print(tempdf.access_device.unique())
+    print(tempdf.scholarities.unique())
+    print(tempdf.genders.unique())
+    tempdf = tempdf[['citizenship', 'mau_audience']]
+    tempdf = tempdf.dropna(subset=['citizenship'])
+    print(tempdf.columns)
+    print(tempdf)
+
+    for index, rows in tempdf.iterrows():
+        if tempdf.citizenship[index] == "{u'not': [6015559470583], u'name': u'All - Expats'}":
+            tempdf.citizenship[index] = "Locals"
+        else:
+            tempdf.citizenship[index] = tempdf.loc[index, 'citizenship'][
+                                        tempdf.loc[index, 'citizenship'].find('(') + 1:tempdf.loc[
+                                            index, 'citizenship'].find(
+                                            ')')]
+    tempdf = tempdf[tempdf['citizenship'].apply(lambda x: x not in set(['All', 'Locals']))]
+    fig, ax = plt.subplots(figsize=(9.5, 6))
+    tempdf[tempdf['mau_audience'] > 1000].set_index('citizenship').sort_values('mau_audience', ascending=False).head(
+        10)[::-1]['mau_audience'].plot(kind='barh')
+    ax.set_xlabel('', labelpad=15)
+    ax.set_ylabel('', labelpad=30)
+    plt.savefig('static/plot.png', transparent=True)
+    encoded = base64.b64encode(open('static/plot.png', 'rb').read()).decode()
+    plothtml = 'data:image/png;base64,{}'
+    plothtml = plothtml.format(encoded)
+    os.remove('static/plot.png')
+
+    return render_template('plotgraph.html', plot=plothtml, gender=gender, scholarities=scholarities, os=os_var)
+
+
+
 #Using this function to remove the characters in the end
 #Can we alternatively use re?
 def isdigit2(inputString):
@@ -30,15 +102,14 @@ def isdigit2(inputString):
 @app.route('/country/<countrycode>', methods=['get','post'])
 def country(countrycode):
 
-    # img = io.BytesIO()
     country = mapping.convert_country_code(countrycode)
     path = glob('static/simplified/{}.csv.gz'.format(countrycode))[0]
 
     df = pd.read_csv(path)
-    df = df[df['citizenship'].apply(lambda x : x not in set(['All', 'Locals']))]
+    df = df[df['citizenship'].apply(lambda x: x not in set(['All', 'Locals']))]
 
     fig, ax = plt.subplots(figsize=(9.5, 6))
-    df.set_index('citizenship').sort_values('Total_mau', ascending=False).head(10)['Total_mau'][::-1].plot(kind='barh')
+    df[df['Total_mau']>1000].set_index('citizenship').sort_values('Total_mau', ascending=False).head(10)['Total_mau'][::-1].plot(kind='barh')
     ax.set_xlabel('', labelpad=15)
     ax.set_ylabel('', labelpad=30)
 
@@ -77,16 +148,6 @@ def country(countrycode):
                 i = 1
     attribute, value = lists[0], lists[1]
 
-    fig, ax = plt.subplots(figsize=(9.5, 6))
-    df.set_index('citizenship').sort_values('Total_mau', ascending=False).head(10)[::-1]['Total_mau'].plot(kind='barh')
-    ax.set_xlabel('', labelpad=15)
-    ax.set_ylabel('', labelpad=30)
-
-    plt.savefig('static/plotcountry{}-form.png'.format(countrycode), transparent=True)
-    encoded = base64.b64encode(open('static/plotcountry{}-form.png'.format(countrycode), 'rb').read()).decode()
-    html2 = 'data:image/png;base64,{}'.format(encoded)
-    os.remove('static/plotcountry{}-form.png'.format(countrycode))
-    print('check')
     if request.method == 'POST':
         path = glob('./static/original/%s_dataframe_collected_finished_*.csv.gz' % (countrycode))[0]
         maindf = pd.read_csv(path)
@@ -123,7 +184,9 @@ def country(countrycode):
 
         tempdf=tempdf[['citizenship', 'mau_audience']]
         tempdf = tempdf.dropna(subset=['citizenship'])
-
+        print(tempdf.columns)
+        print(tempdf)
+        print("CHECKPOINT")
 
         for index, rows in tempdf.iterrows():
             if tempdf.citizenship[index] == "{u'not': [6015559470583], u'name': u'All - Expats'}":
@@ -132,9 +195,10 @@ def country(countrycode):
                 tempdf.citizenship[index] = tempdf.loc[index, 'citizenship'][
                                             tempdf.loc[index, 'citizenship'].find('(') + 1:tempdf.loc[index, 'citizenship'].find(
                                              ')')]
-        tempdf = tempdf[tempdf['citizenship'] != 'Locals'][tempdf['citizenship'] != 'All']
-
-        tempdf.set_index('citizenship').sort_values('mau_audience', ascending=False).head(10)['mau_audience'].plot(kind='barh')
+        tempdf = tempdf[tempdf['citizenship'].apply(lambda x: x not in set(['All', 'Locals']))]
+        plt.close()
+        fig, ax = plt.subplots(figsize=(9.5, 6))
+        tempdf[tempdf['mau_audience']>1000].set_index('citizenship').sort_values('mau_audience', ascending=False).head(10)[::-1]['mau_audience'].plot(kind='barh')
         ax.set_xlabel('', labelpad=15)
         ax.set_ylabel('', labelpad=30)
         plt.savefig('static/plotcountry{}-form.png'.format(countrycode), transparent=True)
@@ -147,7 +211,7 @@ def country(countrycode):
         return render_template("countryinfo.html", cc=countrycode, country=country, attribute=attribute, value=value,
                                length=len(attribute), htmlstring1=html1, htmlstring2=html2)
 
-    return render_template("countryinfo.html", cc=countrycode, country=country, attribute=attribute, value=value, length=len(attribute), htmlstring1=html1, htmlstring2=html2)
+    return render_template("countryinfo.html", cc=countrycode, country=country, attribute=attribute, value=value, length=len(attribute), htmlstring1=html1, htmlstring2=html1)
 
 @app.route('/map/<countrycode>')
 def map(countrycode):
@@ -161,10 +225,10 @@ def map(countrycode):
     g.colorMap(column1='Total_dau', threshold_min1=1001)
     g.createMap(key='name')
 
-    g.addValue(["Male_mau","Female_mau"] , " of the population are males")
-    g.addValue(['Female_mau',"Male_mau",], " of the population are females")
+    g.addValue(["Male_mau", "Female_mau"], " of the population are males")
+    g.addValue(['Female_mau', "Male_mau", ], " of the population are females")
 
-    g.addValue(["Other_mau","iOS_mau", "Android_mau"], " of the population are using other operating system")
+    g.addValue(["Other_mau", "iOS_mau", "Android_mau"], " of the population are using other operating system")
     g.addValue(["iOS_mau", "Other_mau", "Android_mau"], " of the population are using iOS operating system")
     g.addValue(["Android_mau", "iOS_mau", "Other_mau"], " of the population are using Android operating system")
 
@@ -182,10 +246,10 @@ def map(countrycode):
     g.colorMap(column1='Male_dau', threshold_min1=1001)
     g.createMap(key='name')
 
-    g.addValue(["Male_mau","Female_mau"] , " of the population are males")
-    g.addValue(['Female_mau',"Male_mau",], " of the population are females")
+    g.addValue(["Male_mau", "Female_mau"], " of the population are males")
+    g.addValue(['Female_mau', "Male_mau", ], " of the population are females")
 
-    g.addValue(["Other_mau","iOS_mau", "Android_mau"], " of the population are using other operating system")
+    g.addValue(["Other_mau", "iOS_mau", "Android_mau"], " of the population are using other operating system")
     g.addValue(["iOS_mau", "Other_mau", "Android_mau"], " of the population are using iOS operating system")
     g.addValue(["Android_mau", "iOS_mau", "Other_mau"], " of the population are using Android operating system")
 
@@ -203,10 +267,10 @@ def map(countrycode):
     g.colorMap(column1='Female_dau', threshold_min1=1001)
     g.createMap(key='name')
 
-    g.addValue(["Male_mau","Female_mau"] , " of the population are males")
-    g.addValue(['Female_mau',"Male_mau",], " of the population are females")
+    g.addValue(["Male_mau", "Female_mau"], " of the population are males")
+    g.addValue(['Female_mau', "Male_mau", ], " of the population are females")
 
-    g.addValue(["Other_mau","iOS_mau", "Android_mau"], " of the population are using other operating system")
+    g.addValue(["Other_mau", "iOS_mau", "Android_mau"], " of the population are using other operating system")
     g.addValue(["iOS_mau", "Other_mau", "Android_mau"], " of the population are using iOS operating system")
     g.addValue(["Android_mau", "iOS_mau", "Other_mau"], " of the population are using Android operating system")
 
@@ -219,7 +283,7 @@ def map(countrycode):
     g.createPlots(["Graduated_mau", "High_School_mau", "No_Degree_mau"], ["Graduated", "High School", "No degree"])
 
     g.addInfoBox()
-    
+
     '''bmap.createGroup('Facts')
     f= plotmap.interestingFacts(bmap, 'Facts', 'interesting fact', 'citizenship')
     f.addFacts(['Total_mau', 'Other_mau', 'iOS_mau', 'Android_mau'], ('Other', 'iOS', 'Android'),'trophy.png', 'phone.png')
@@ -232,7 +296,7 @@ def map(countrycode):
 @app.route('/Qatar2')
 def Qatar2():
     df = pd.read_csv('static/QatarMigration.csv')
-    m = folium.Map(location=[0,0], zoom_start = 3)
+    m = folium.Map(location=[0, 0], zoom_start=3)
     vdict = df[df['Total_dau'] >= 0].set_index('citizenship')['Total_dau']
     geodata = json.load(open('static/QatarMigration.geojson'))
     folium.GeoJson(geodata,
@@ -246,7 +310,6 @@ def Qatar2():
                                                           sticky=False)).add_to(m)
     m.save('templates/Country.html')
     return render_template("Country.html")
-
 
 
 if __name__ == "__main__":

@@ -25,19 +25,17 @@
         </ul>
       </div>
     </nav>
-
+    <br><br>
     <div class="container">
         <center>
             <br>
             <h2>
                 {{ country }}
             </h2>
-            <br>
-            <br>
-
-            <div class="container">
+            <br><br><br>
+           <div class="container">
                 <div class="row">
-                    <div class="col-lg-6 border">
+                    <div class="col-lg-5 border">
                         <p style="font-size:24px;">General Information</p>
                         <p>extracted from UN data</p>
                         <div class="overflow-auto" style="max-height: 350px">
@@ -53,7 +51,10 @@
                             </table>
                         </div>
                     </div>
-                    <div class="col-lg-6">
+                    <div class="col-lg-1">
+                        <br>
+                    </div>
+                    <div class="col-lg-5">
                         <center>
                             <p style="font-size:24px;">Expat distribution</p>
                             <!--<img style="width: auto; height: 400px; align: 'center'" src="{{ url_for('static', filename='plotcountry'+cc+'.png') }}" alt="Try again">
@@ -62,7 +63,7 @@
                         </center>
                     </div>
                 </div>
-            </div>
+            </div><br>
 
             <div class="container">
                  <br>
@@ -78,77 +79,78 @@
 
 
 
-<div class="container">
-    <div class="row">
-        <div class="col-lg-5">
-            <center>
-                <p style="font-size:24px;">Expat distribution</p>
-                <!--<img style="width: auto; height: 400px; align: 'center'" src="{{ url_for('static', filename='plotcountry'+cc+'-form.png') }}" alt="Try again">
-                <img style="width: auto; height: 400px; align: 'center'" src="{{ plot }}" alt="Try again"> -->
-                <div id="plot">
-                <img style="width: auto; height: 400px; align: 'center'" src={{ htmlstring2 }}>
-                </div>
-            </center>
-        </div>
-        <div class="col-lg-2">
-            <br>
-        </div>
-        <div class="col-lg-5">
+<div class="bluecontainer">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-5">
+                <center>
+                    <p style="font-size:24px;">Expat distribution</p>
+                </center>
+                    <!--<img style="width: auto; height: 400px; align: 'center'" src="{{ url_for('static', filename='plotcountry'+cc+'-form.png') }}" alt="Try again">
+                    <img style="width: auto; height: 400px; align: 'center'" src="{{ plot }}" alt="Try again"> -->
+                    <div id="plot">
+                    <img style="width: auto; height: 400px;" src={{ htmlstring2 }}>
+                    </div>
+            </div>
+            <div class="col-lg-2">
+                <br>
+            </div>
+            <div class="col-lg-5">
 
-                    <center>
-                    <p style="font-size:24px;">Plot your own graph!</p>
-                    <br>
-                    </center>
-                   <form action="{{ url_for('country', countrycode=cc)}}" method="post">
+                        <p style="font-size:24px;">Plot a graph:</p>
                         <br>
-                        <div class="form-group container">
+                       <!--<form action="{{ url_for('country', countrycode=cc)}}" method="post">-->
+                        <form>
+                            <br>
+                            <div class="form-group container">
 
-                            <div class="overflow-auto" style="max-height: 330px">
-                            <p style="font-size:24px;">Gender</p>
-                            <div class="radio" checked>
-                              <label><input type="radio" name="gender" value="male">Male</label>
-                            </div>
-                            <div class="radio">
-                              <label><input type="radio" name="gender" value="female">Female</label>
-                            </div>
-                            <div class="radio" checked>
-                              <label><input type="radio" name="gender" value="both">Both</label>
-                            </div>
-                            <br>
-                            <p style="font-size:24px;">Scholarities</p>
-                            <div class="radio">
-                              <label><input type="radio" name="scholarities" value="graduated">Graduated</label>
-                            </div>
-                            <div class="radio">
-                              <label><input type="radio" name="scholarities" value="highschool">High School</label>
-                            </div>
-                            <div class="radio">
-                              <label><input type="radio" name="scholarities" value="nodegree">No Degree</label>
-                            </div>
-                            <div class="radio" checked>
-                              <label><input type="radio" name="scholarities" value="all">All</label>
-                            </div>
-                            <br>
-                            <p style="font-size:24px;">OS used</p>
-                            <div class="radio">
-                              <label><input type="radio" name="os" value="ios">iOS</label>
-                            </div>
-                            <div class="radio">
-                              <label><input type="radio" name="os" value="andriod">Android</label>
-                            </div>
-                            <div class="radio">
-                              <label><input type="radio" name="os" value="others">Others</label>
-                            </div>
-                            <div class="radio" checked>
-                              <label><input type="radio" name="os" value="all">All</label>
-                            </div>
-                            <br>
-                            </div>
-                            <br>
+                                <div class="overflow-auto" style="max-height: 380px">
+                                <p style="font-size:24px;">Gender</p>
+                                <div class="radio" checked>
+                                  <label><input type="radio" name="gender" value="male">Male</label>
+                                </div>
+                                <div class="radio">
+                                  <label><input type="radio" name="gender" value="female">Female</label>
+                                </div>
+                                <div class="radio" checked>
+                                  <label><input type="radio" name="gender" value="both">Both</label>
+                                </div>
+                                <br>
+                                <p style="font-size:24px;">Scholarities</p>
+                                <div class="radio">
+                                  <label><input type="radio" name="scholarities" value="graduated">Graduated</label>
+                                </div>
+                                <div class="radio">
+                                  <label><input type="radio" name="scholarities" value="highschool">High School</label>
+                                </div>
+                                <div class="radio">
+                                  <label><input type="radio" name="scholarities" value="nodegree">No Degree</label>
+                                </div>
+                                <div class="radio" checked>
+                                  <label><input type="radio" name="scholarities" value="all">All</label>
+                                </div>
+                                <br>
+                                <p style="font-size:24px;">OS used</p>
+                                <div class="radio">
+                                  <label><input type="radio" name="os" value="ios">iOS</label>
+                                </div>
+                                <div class="radio">
+                                  <label><input type="radio" name="os" value="andriod">Android</label>
+                                </div>
+                                <div class="radio">
+                                  <label><input type="radio" name="os" value="others">Others</label>
+                                </div>
+                                <div class="radio" checked>
+                                  <label><input type="radio" name="os" value="all">All</label>
+                                </div>
+                                <br>
+                                </div>
+                                <br>
 
-                        </div>
-                          <button type='Submit' id='plotbtn' class="btn btn-primary btn-dark" >Plot</button>
-                    </form>
+                            </div>
+                              <button type='button' id='plotbtn' class="btn btn-primary btn-dark" >Plot</button>
+                        </form>
+            </div>
         </div>
     </div>
 </div>
@@ -156,11 +158,34 @@
 
     <br>
     <br>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script>
+$("#plotbtn").click(function(){
+    //var text = $(this).val();
+    var gender = $("input[name='gender']:checked").val();
+    var scholarities = $("input[name='scholarities']:checked").val();
+    var os_var = $("input[name='os']:checked").val();
+    $.ajax({
+      url: "../../plotgraph",
+      type: "get",
+      data: {gender: gender, scholarities: scholarities, os: os_var, cc: '{{cc}}' },
+      success: function(response) {
+        $("#plot").html(response);
+      },
+      error: function(xhr) {
+        //Do Something to handle error
+      }
+    });
+});
+</script>
+
 <footer class="page-footer font-small blue pt-4" style="background-color:#44535e; color:white;">
   <div class="footer-copyright text-center py-3">
     June, 2019
   </div>
 </footer>
+
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
