@@ -21,6 +21,12 @@ def index():
     li_path, li_country = zip(*country_list)
     return render_template("index.html", list_path=li_path, list_country=li_country, length=length)
 
+
+#Using this function to remove the characters in the end
+#Can we alternatively use re?
+def isdigit2(inputString):
+    return any(char.isdigit() for char in inputString)
+
 @app.route('/country/<countrycode>', methods=['get','post'])
 def country(countrycode):
 
@@ -45,29 +51,31 @@ def country(countrycode):
     countryData = requests.get(url).text
     soup = BeautifulSoup(countryData)
     tables = soup.find_all("tbody")
-    lists, i = [[], [], []], 1
+    lists, i = [[], []], 1
     for tag in tables[1].find_all('td'):
         if i == 1:
             lists[0].append(tag.text)
-        elif i == 2:
-            lists[1].append(tag.text)
         elif i == 3:
-            lists[2].append(tag.text)
-        i = i + 1
+            text = tag.text
+            if ((isdigit2(text))&(text[1:].find('-')==-1)):
+                text = text.replace('a', '').replace('b', '').replace('c', '').replace('d', '').replace('e','').replace('f', '').replace('g', '').replace(',','').replace(' ', '')
+            lists[1].append(text)
+        i += 1
         if i == 4:
             i = 1
     for index in range(2, 5):
         for tag in tables[index].find_all('td'):
             if i == 1:
                 lists[0].append(tag.text)
-            elif i == 2 | i == 3:
-                pass
             elif i == 4:
-                lists[2].append(tag.text)
-            i = i + 1
+                text = tag.text
+                if (isdigit2(text)):
+                    text = text.replace('a', '').replace('b', '').replace('c', '').replace('d', '').replace('e','').replace('f', '').replace('g', '').replace(',', '').replace(' ', '')
+                lists[1].append(text)
+            i += 1
             if i == 5:
                 i = 1
-    attribute, value = lists[0], lists[2]
+    attribute, value = lists[0], lists[1]
 
     fig, ax = plt.subplots(figsize=(9.5, 6))
     df.set_index('citizenship').sort_values('Total_mau', ascending=False).head(10)[::-1]['Total_mau'].plot(kind='barh')
@@ -90,9 +98,9 @@ def country(countrycode):
         if request.form.getlist('gender')[0] == 'both':
             tempdf = maindf[(maindf['genders'] == 0) & (maindf['ages_ranges'] == "{u'min': 13}")]
         elif request.form.getlist('gender')[0] == 'male':
-            tempdf = maindf[maindf['genders']==1][maindf['ages_ranges']=="{u'min': 13}"]
+            tempdf = maindf[(maindf['genders']==1) & (maindf['ages_ranges']=="{u'min': 13}")]
         elif request.form.getlist('gender')[0]=='female':
-            tempdf = maindf[maindf['genders']==2][maindf['ages_ranges']=="{u'min': 13}"]
+            tempdf = maindf[(maindf['genders']==2) & (maindf['ages_ranges']=="{u'min': 13}")]
 
         if request.form.getlist('scholarities')[0]=='all':
             tempdf=tempdf[tempdf['scholarities'].isnull()]
