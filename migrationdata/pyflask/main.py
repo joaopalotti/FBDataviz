@@ -161,13 +161,70 @@ def map(countrycode):
     g.colorMap(column1='Total_dau', threshold_min1=1001)
     g.createMap(key='name')
 
+    g.addValue(["Male_mau","Female_mau"] , " of the population are males")
+    g.addValue(['Female_mau',"Male_mau",], " of the population are females")
+
+    g.addValue(["Other_mau","iOS_mau", "Android_mau"], " of the population are using other operating system")
+    g.addValue(["iOS_mau", "Other_mau", "Android_mau"], " of the population are using iOS operating system")
+    g.addValue(["Android_mau", "iOS_mau", "Other_mau"], " of the population are using Android operating system")
+
+    g.addValue(["No_Degree_mau", "Graduated_mau", "High_School_mau"], " of the population do not have a degree")
+    g.addValue(["Graduated_mau", "High_School_mau", "No_Degree_mau"], " of the population graduated from college")
+    g.addValue(["High_School_mau", "Graduated_mau", "No_Degree_mau"], " of the population have a high school degree")
+
+    g.createPlots(["Male_mau", "Female_mau"], ['Men', 'Women'])
+    g.createPlots(["iOS_mau", "Android_mau", "Other_mau"], ["iOS", "Android", "Others"])
+    g.createPlots(["Graduated_mau", "High_School_mau", "No_Degree_mau"], ["Graduated", "High School", "No degree"])
+
+    g.addInfoBox()
+
     g = plotmap.geojson(bmap, 'Gender', 'Male', locationcol='citizenship')
     g.colorMap(column1='Male_dau', threshold_min1=1001)
     g.createMap(key='name')
 
+    g.addValue(["Male_mau","Female_mau"] , " of the population are males")
+    g.addValue(['Female_mau',"Male_mau",], " of the population are females")
+
+    g.addValue(["Other_mau","iOS_mau", "Android_mau"], " of the population are using other operating system")
+    g.addValue(["iOS_mau", "Other_mau", "Android_mau"], " of the population are using iOS operating system")
+    g.addValue(["Android_mau", "iOS_mau", "Other_mau"], " of the population are using Android operating system")
+
+    g.addValue(["No_Degree_mau", "Graduated_mau", "High_School_mau"], " of the population do not have a degree")
+    g.addValue(["Graduated_mau", "High_School_mau", "No_Degree_mau"], " of the population graduated from college")
+    g.addValue(["High_School_mau", "Graduated_mau", "No_Degree_mau"], " of the population have a high school degree")
+
+    g.createPlots(["Male_mau", "Female_mau"], ['Men', 'Women'])
+    g.createPlots(["iOS_mau", "Android_mau", "Other_mau"], ["iOS", "Android", "Others"])
+    g.createPlots(["Graduated_mau", "High_School_mau", "No_Degree_mau"], ["Graduated", "High School", "No degree"])
+
+    g.addInfoBox()
+
     g = plotmap.geojson(bmap, 'Gender', 'Female', locationcol='citizenship')
     g.colorMap(column1='Female_dau', threshold_min1=1001)
     g.createMap(key='name')
+
+    g.addValue(["Male_mau","Female_mau"] , " of the population are males")
+    g.addValue(['Female_mau',"Male_mau",], " of the population are females")
+
+    g.addValue(["Other_mau","iOS_mau", "Android_mau"], " of the population are using other operating system")
+    g.addValue(["iOS_mau", "Other_mau", "Android_mau"], " of the population are using iOS operating system")
+    g.addValue(["Android_mau", "iOS_mau", "Other_mau"], " of the population are using Android operating system")
+
+    g.addValue(["No_Degree_mau", "Graduated_mau", "High_School_mau"], " of the population do not have a degree")
+    g.addValue(["Graduated_mau", "High_School_mau", "No_Degree_mau"], " of the population graduated from college")
+    g.addValue(["High_School_mau", "Graduated_mau", "No_Degree_mau"], " of the population have a high school degree")
+
+    g.createPlots(["Male_mau", "Female_mau"], ['Men', 'Women'])
+    g.createPlots(["iOS_mau", "Android_mau", "Other_mau"], ["iOS", "Android", "Others"])
+    g.createPlots(["Graduated_mau", "High_School_mau", "No_Degree_mau"], ["Graduated", "High School", "No degree"])
+
+    g.addInfoBox()
+    
+    '''bmap.createGroup('Facts')
+    f= plotmap.interestingFacts(bmap, 'Facts', 'interesting fact', 'citizenship')
+    f.addFacts(['Total_mau', 'Other_mau', 'iOS_mau', 'Android_mau'], ('Other', 'iOS', 'Android'),'trophy.png', 'phone.png')
+
+    bmap.groupedLayerControl(['Gender','Facts'])'''
     folium.LayerControl().add_to(bmap.map)
     return render_template_string(bmap.map.get_root().render())
 
