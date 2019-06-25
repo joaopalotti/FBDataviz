@@ -4,9 +4,11 @@ import folium
 import branca
 import json
 from branca.element import MacroElement
-from branca.colormap import LinearColormap
+from branca.colormap import linear, LinearColormap
 from jinja2 import Template
 from folium import plugins
+import matplotlib.pyplot as plt
+from geopy.geocoders import Nominatim
 
 class BindColormap(MacroElement):
     def __init__(self, layer, colormap):
@@ -27,10 +29,24 @@ class BindColormap(MacroElement):
         {% endmacro %}
         """)
 
-
 class baseMap():
-    def __init__(self, data='None', shapefile=None):
-        self.map = folium.Map(location=[2, -2], zoom_start=3)
+    """Creates a base map to create and plot visualisations
+    
+    Parameters
+    ----------
+    data : pandas dataframe or path to CSV file
+        Dataset that would be used for creating the map.
+        
+    shapefile : path to a GeoJSON file
+        Shapefile for plotting on a map    
+    
+    Examples
+    --------
+    >>> map.groupedLayerControl()
+    
+    """
+    def __init__(self, data = 'None', shapefile = None):
+        self.map = folium.Map(location = [2,-2], zoom_start = 3)
         self.feature_groups = {}
         if type(data) == str:
             if data == 'None':
@@ -47,41 +63,93 @@ class baseMap():
             self.geodata = json.load(open(shapefile))
         else:
             print("Enter a GeoJson file.")
+            
+            
+    def groupedLayerControl(self, radio = []):
+        
+        """Creates a grouped layer control.
+        
+        Parameters
+        --------
+        radio : List of groups that should have mutually exclusive items.
+    
+        Examples
+        --------
+        >>> map = baseMap()
+        >>> map = baseMap(data = 'data/alldata.csv', shapefile = 'data/country3.0.geojson' )
 
-    def groupedLayerControl(self, radio=[]):
+        """
         for i in self.feature_groups.keys():
             if i in radio:
                 self.feature_groups[i]['None'] = folium.map.FeatureGroup(name='None', show=False).add_to(self.map)
         folium.plugins.GroupedLayerControl({}, self.feature_groups, radio).add_to(self.map)
-
+        
     def getMap(self):
-        return self.map
+        """Returns a folium map object.
+        
+        Returns
+        --------
+        folium map object
 
+        Examples
+        --------
+        >>> bmap.getMap()
+
+        """
+        return self.map
+    
+    
     def createGroup(self, name):
         self.feature_groups[name] = {}
-
+    
 
 class geojson():
+    
+    """Creates a Choropleth map.
+    
+    Parameters
+    ----------
+    baseMap : A baseMap object is given to the function
+    
+    name : Name of the Choropleth map being created
+        
+    data : pandas dataframe or path to CSV file
+        Dataset that would be used for creating the map.
+       
+    shapefile : path to a GeoJSON file
+        Shapefile for plotting on a map    
 
-
-    def __init__(self, baseMap, feature_group, name, data='None', shapefile=None, locationcol='Location'):
+    Returns
+    -------
+    geojson object
+    
+    Examples
+    --------
+    >>> Geo = geojson(basemap, 'Choropleth', shapefile = 'geodata/city3.0.geojson')
+    
+    """
+    
+    def __init__(self, baseMap, feature_group, name, data = 'None', shapefile = None,locationcol = 'Location', Total=None):
         self.baseMap = baseMap
         self.name = name
         self.vdict, self.vdict2 = {}, {}
         self.column1, self.column2 = None, None
         self.colormap = None
         self.colormap2 = None
-        self.plotcolumns, self.plotlabels = [], []
+        self.plotcolumns, self.plotlabels = [],[]
         self.valuecolumns, self.valuestring = [], []
+        self.absolutecolumns, self.absolutestring = [], []
         self.locationcol = locationcol
         self.key = 'name'
         self.feature_group = feature_group
-        if type(data) == str:
+        self.total_number=Total
+#         self.Total_mau='Total_mau'
+        if type(data)==str:
             if data == 'None':
-                self.df = self.baseMap.df
-            elif data[-4:] == '.csv':
+                self.df=self.baseMap.df
+            elif data[-4:]=='.csv':
                 self.df = pd.read_csv('data')
-            else:
+            else: 
                 print("Enter path to a csv file.")
         else:
             self.df = data
@@ -89,12 +157,10 @@ class geojson():
             self.geodata = self.baseMap.geodata
         else:
             self.geodata = json.load(open(shapefile))
-        self.baseMap.feature_groups[self.feature_group][self.name] = folium.map.FeatureGroup(name=name,
-                                                                                             show=False).add_to(
-            self.baseMap.map)
-
+        self.baseMap.feature_groups[self.feature_group][self.name] = folium.map.FeatureGroup(name=name, show=False).add_to(self.baseMap.map)
+        
     def colorMap(self, column1, column2=None, threshold_min1=None, threshold_min2=None, threshold_max1=None,
-                 threshold_max2=None):
+                 threshold_max2=None, method='linear'):
         if threshold_min1 == None:
             threshold_min1 = self.df[column1].min()
             a = threshold_min1
@@ -106,7 +172,7 @@ class geojson():
         self.colormap = LinearColormap(['#3f372f', '#1b424e', '#226b56', '#74aaa7', '#bbf9e9', '#ffffff'],
                                        vmin=self.df[self.df[column1] >= threshold_min1][column1].min(),
                                        vmax=self.df[self.df[column1] <= threshold_max1][column1].max()).to_step(
-            data=self.df[(self.df[column1] <= threshold_max1) & (self.df[column1] >= threshold_min1)][column1], n=6, method='quantiles')
+            data=self.df[(self.df[column1] <= threshold_max1) & (self.df[column1] >= threshold_min1)][column1], n=6, method=method)
 
         # self.vdict =self.df.set_index(self.locationcol)[column1]
         self.vdict =self.df[(self.df[column1] <= threshold_max1) & (self.df[column1] >= threshold_min1)].set_index(self.locationcol)[column1]
@@ -125,135 +191,254 @@ class geojson():
                                             vmin=self.df[self.df[column2] >= threshold_min2][column2].min(),
                                             vmax=self.df[self.df[column2] <= threshold_max2][column2].max()).to_step(
                 data=self.df[self.df[column2] <= threshold_max2][self.df[column2] >= 0][column2], n=5,
-                method='quantiles')
+                method=method)
             self.vdict2 = self.df[self.df[column2] <= threshold_max2][self.df[column2] >= threshold_min2].set_index(self.locationcol)[column2]
             self.baseMap.map.add_child(self.colormap2)
             self.baseMap.map.add_child(
                 BindColormap(self.baseMap.feature_groups[self.feature_group][self.name], self.colormap2))
+    
 
-    def createMap(self, key='name'):
+    def createMap(self, key = 'name'):
+        
+        """Creates the Choropleth map.
+
+        Examples
+        --------
+        >>> geo.createMap()
+
+        """
         self.key = key
-        folium.GeoJson(self.geodata,
+        folium.GeoJson(self.geodata, 
                        style_function=lambda feature: {
-                           'fillColor': (
-                               self.colormap(self.vdict[feature['properties'][self.key]]) if feature['properties'][
-                                                                                                 self.key] in self.vdict else 'grey') if ~(
-                                       self.column1 == None) else 'red',
-                           'color': (
-                               self.colormap2(self.vdict2[feature['properties'][self.key]]) if feature['properties'][
-                                                                                                   self.key] in self.vdict2 else 'grey') if ~(
-                                       self.column2 == None) else 'orange',
-                           'weight': 2 if (self.column2 != None) else 0.5,
-                           'fillOpacity': 1 if feature['properties'][self.key] in self.vdict else 0}).add_to(
-            self.baseMap.feature_groups[self.feature_group][self.name])
-
+        'fillColor': (self.colormap(self.vdict[feature['properties'][self.key]]) if feature['properties'][self.key] in self.vdict else 'grey') if ~(self.column1 == None) else 'black',
+      'color': (self.colormap2(self.vdict2[feature['properties'][self.key]]) if feature['properties'][self.key] in self.vdict2 else 'grey') if ~(self.column2 == None) else 'black',
+      'weight': 2 if (self.column2 != None) else 0.5,
+      'fillOpacity': 1 if feature['properties'][self.key] in self.vdict else 0},
+       tooltip=folium.features.GeoJsonTooltip(fields=[self.key],
+                                          labels=False,
+                                          sticky=False)).add_to(self.baseMap.feature_groups[self.feature_group][self.name])
+        
+        
     def addValue(self, columns, string):
+        
+        """Takes input for the information to be displayed in the information box as text.
+    
+        Parameters
+        ----------
+        columns : The column value to be displayed
+
+        string : The string following the value 
+
+        Examples
+        --------
+        >>> geo.addValue("ven/pop", " of the population are Venezuelans.")
+        >>> geo.addValue("ven/migrants", " of the migrants are Venezuelans.")
+
+            """
         self.valuecolumns.append(columns)
         self.valuestring.append(string)
+        
+    def addAbsolute(self, columns, string):
+        
+        """Takes input for the information to be displayed in the information box as text.
+    
+        Parameters
+        ----------
+        columns : The column value to be displayed
 
+        string : The string following the value 
+
+        Examples
+        --------
+        >>> geo.addAbsolute("pop", " number of people who are Venezuelans.")
+        >>> geo.addAbsolute("migrants", " number of migrants who are Venezuelans.")
+
+            """
+        self.absolutecolumns.append(columns)
+        self.absolutestring.append(string)
+        
     def createPlots(self, columns, labels):
+        
+        """Takes input for the plots to be displayed in the information box.
+    
+        Parameters
+        ----------
+        columns : A list of column names used to create the pie chart.
+
+        labels: A list of labels corresponding to the column values for the pie chart.
+
+        Examples
+        --------
+        >>> geo.addValue("ven/pop", " of the population are Venezuelans.")
+        >>> geo.addValue("ven/migrants", " of the migrants are Venezuelans.")
+
+        """
+        
         self.plotcolumns.append(columns)
         self.plotlabels.append(labels)
-
+    
     def copyInfoBox(self, geojson):
+        
+        """Copies the structure of information box created for one geojson object to another.
+    
+        Parameters
+        ----------
+        geojson : A geojson object whose information box's structure is to be copied.
+
+        Examples
+        --------
+        >>> geo.copyInfoBox(geojson1)
+
+        """
         self.valuecolumns = geojson.valuecolumns
         self.valuestring = geojson.valuestring
+        self.absolutecolumns=geojson.absolutecolumns
+        self.absolutestring=geojson.absolutestring
         self.plotcolumns = geojson.plotcolumns
         self.plotlabels = geojson.plotlabels
-
+    
     def addInfoBox(self):
-
+        
+        """Adds information box to the choropleth map as a pop up.
+        
+        Examples
+        --------
+        >>> geo.addInfoBox()
+        
+        """
+        
         for feature in self.geodata['features']:
-            a = self.df[self.df["Location"] == feature['properties']['name']]
-            ind = (a.index)[0]
-            html = "<center><h2 style='font-family: Arial, Helvetica, sans-serif;'>" + feature['properties'][
-                'name'] + "</h2></center><center>"
-            for i in range(len(self.valuecolumns)):
-                html += "<h4 style='font-family: Arial, Helvetica, sans-serif;'>" + str(
-                    round(a.loc[ind][self.valuecolumns[i]] * 100, 2)) + "%" + self.valuestring[i] + "</h4>"
-            encodedlist = []
-            for i in range(len(self.plotcolumns)):
-                fig1, ax1 = plt.subplots(figsize=(5, 3))
-                ax1.pie([a.loc[(a.index)[0], j] for j in self.plotcolumns[i]], labels=self.plotlabels[i],
-                        autopct='%1.1f%%', shadow=True, startangle=90)
-                plt.savefig('myfig.png', transparent=True)
-                encoded = b64encode(open('myfig.png', 'rb').read()).decode()
-                encodedlist.append(encoded)
-                html += '<img align="middle" src="data:image/png;base64,{}">'
+#             a = self.df[self.df[self.locationcol] == feature['properties']['name']]
+            a = self.df[self.df[self.locationcol]== feature['properties'][self.key]]
+            if (len(a.index)!=0):
+                ind=(a.index)[0]
+                html = "<center><h2 style='font-family: Arial, Helvetica, sans-serif;'>" + feature['properties'][self.key] + "</h2></center><center>"
+                for i in range(len(self.absolutecolumns)):
+                    html+="<h4 style='font-family: Arial, Helvetica, sans-serif;'>"+str(round(a.loc[ind][self.absolutecolumns[i]], 2)) + self.absolutestring[i] + "</h4>"
+                for i in range(len(self.valuecolumns)):
+                    total=0
+                    for j in self.valuecolumns[i]:
+                        total=total+a.loc[ind][j] 
+                    total=total.tolist()
+                    value=a.loc[ind][self.valuecolumns[i]].tolist()[0]
+                    html+="<h4 style='font-family: Arial, Helvetica, sans-serif;'>"+str(round(value/total*100, 2))+"%" + self.valuestring[i] + "</h4>"
+                encodedlist = []
+                for i in range(len(self.plotcolumns)):
+                    fig1, ax1 = plt.subplots(figsize=(5,3))
+                    ax1.pie([a.loc[(a.index)[0],j] for j in self.plotcolumns[i]], labels=self.plotlabels[i], autopct='%1.1f%%', shadow=True, startangle=90)
+                    plt.savefig('myfig.png', transparent = True)
+                    encoded = b64encode(open('myfig.png', 'rb').read()).decode()
+                    encodedlist.append(encoded)
+                    html += '<img align="middle" src="data:image/png;base64,{}">'
 
-            html += '</center>'
+                html += '</center>'
 
-            geo = folium.GeoJson(feature['geometry'],
-                                 style_function=lambda feature: {'weight': 0, 'fillOpacity': 0},
-                                 tooltip=feature['properties']['name'])
-
-            iframe = branca.element.IFrame(html=html.format(*encodedlist), width=400, height=400)
-            folium.Popup(iframe).add_to(geo)
-            geo.add_to(self.baseMap.feature_groups[self.feature_group][self.name])
-
-
+                geo = folium.GeoJson(feature['geometry'],
+                       style_function=lambda feature: { 'weight': 0,'fillOpacity': 0},
+                        tooltip =feature['properties'][self.key])
+            
+                iframe = branca.element.IFrame(html=html.format(*encodedlist), width=400, height=400)
+                folium.Popup(iframe).add_to(geo)  
+                geo.add_to(self.baseMap.feature_groups[self.feature_group][self.name])
+            
 class interestingFacts():
-    def __init__(self, basemap, feature_group, name, locationcol='Location', data='None'):
+    """Creates a map with icons showing interesting facts
+    
+    Parameters
+    ----------
+    baseMap : A baseMap object is given to the function
+    
+    feature_group: name for feature_group dict
+    
+    name : Name of the feature group which needs to be added to a dict
+    
+    location: column name for location
+        
+    data : pandas dataframe or path to CSV file
+        Dataset that would be used for creating the map.  
+    
+    Examples
+    --------
+    >>> f= interestingFacts(basemap, 'City', latlong, location, data = df)
+    
+    """
+    def __init__(self, basemap, feature_group, name, locationcol = 'Location', data = 'None'):
         self.basemap = basemap
         self.name = name
-        self.Loc = []
-        self.tdict, self.pdict, self.pidict, self.hdict, self.cdict = {}, {}, {}, {}, {}
+        self.Loc= []
+        self.tdict, self.pdict, self.pidict, self.hdict, self.cdict={}, {}, {}, {}, {}
         self.feature_group = feature_group
-        self.locationcol = locationcol
-        if type(data) == str:
+        self.locationcol=locationcol
+        if type(data)==str:
             if data == 'None':
-                self.df = self.basemap.df
-            elif data[-4:] == '.csv':
+                self.df=self.basemap.df
+            elif data[-4:]=='.csv':
                 self.df = pd.read_csv('data')
-            else:
+            else: 
                 print("Enter path to a csv file.")
         else:
             self.df = data
-        self.basemap.feature_groups[self.feature_group][self.name] = folium.map.FeatureGroup(name=self.name,
-                                                                                             show=True).add_to(
-            self.basemap.map)
-
+        self.basemap.feature_groups[self.feature_group][self.name] = folium.map.FeatureGroup(name=self.name, show=True).add_to(self.basemap.map)
+            
+    
     def addFacts(self, array, labels, icon_map, icon_pop):
-        df = self.df
+        """Creates icons on map
+
+        Parameters
+        ----------
+        array : List of column name
+        label : Tuple of label name 
+        icon_map : the icon shown on map
+        icon_pop : pop up icon
+
+        Examples
+        --------
+        >>> f.addFacts(['%ven_audience_woman', '%ven_audience_man'], ('Women', 'Men'), '1.png','2.png')
+
+        """
+        df=self.df
+        totalname=array[0]
+        array=array[1:]
         for i in range(len(array)):
-            arr = [0] * len(array)
-            a = df.loc[df[array[i]].idxmax(axis=1)]
+            df[array[i]+totalname]=df[array[i]]/df[totalname]
+        for i in range(len(array)):
+            arr = [0]*len(array)
+            name=array[i]+totalname
+            a = df.loc[df[name].idxmax(axis=1)]
             for j in range(len(array)):
-                arr[j] = a[array[j]]
-            fig1, ax1 = plt.subplots(figsize=(1.8, 1.8))
+                arr[j]=a[array[j]]
+            fig1, ax1 = plt.subplots(figsize=(1.8,1.8))
             ax1.pie(arr, labels=labels, autopct='%1.1f%%', shadow=True, startangle=90)
-            plt.savefig('myfig.png', transparent=True)
+            plt.savefig('myfig.png', transparent = True)
             html1 = '<center><img align="middle" src="data:image/png;base64,{}"></center>'
             encoded = b64encode(open(icon_pop, 'rb').read()).decode()
             encpie = b64encode(open('myfig.png', 'rb').read()).decode()
             ic = icon_map
+#             locationname=self.locationcol
             l = a[self.locationcol]
-            latlong = a['LatLong']
+#             print(l, self.Loc)
+            latlong=a['LatLong']
+#             print(latlong)
             if l not in self.Loc:
                 self.Loc.append(l)
-                self.pdict[l], self.hdict[l], self.tdict[l], self.pidict[l], self.cdict[
-                    l] = '<h4><center>' + l + '</center></h4>', '', [], [], 0
+                self.pdict[l], self.hdict[l],self.tdict[l], self.pidict[l], self.cdict[l] = '<h4><center>' + l +'</center></h4>', '', [], [], 0
                 self.tdict[l].append(encoded)
-                self.pdict[l] += '<hr><center><p style="padding:0px 10px 0px 10px">' + l
+                self.pdict[l] += '<hr><center><p style="padding:0px 10px 0px 10px">'+ l
                 self.hdict[l] += html1
             self.pidict[l].append(encpie)
-            self.cdict[l] += 1
-            string = " highest percentage of " + labels[i] + "."
-            self.pdict[
-                l] += ' has the' + string + '</p></center><center><img align="middle" src="data:image/png;base64,{}"></center>'
-            iframe = branca.element.IFrame(html=self.pdict[l].format(*self.pidict[l]), width=400,
-                                           height=220 + self.cdict[l] * 50)
-            folium.Marker([latlong.split(",")[0], latlong.split(",")[1]], popup=folium.Popup(iframe),
-                          icon=folium.features.CustomIcon(ic, icon_size=(28, 30)),
-                          tooltip=self.hdict[l].format(*self.tdict[l])).add_to(
-                self.basemap.feature_groups[self.feature_group][self.name])
-
+            self.cdict[l]+=1
+            string = " highest percentage of "+ labels[i]+"."
+            self.pdict[l] += ' has the'+string+'</p></center><center><img align="middle" src="data:image/png;base64,{}"></center>' 
+            iframe = branca.element.IFrame(html=self.pdict[l].format(*self.pidict[l]), width=400, height = 220 + self.cdict[l]* 50)
+            folium.Marker([latlong.split(",")[0], latlong.split(",")[1]], popup = folium.Popup(iframe), icon = folium.features.CustomIcon(ic,icon_size=(28, 30)),tooltip=self.hdict[l].format(*self.tdict[l]) ).add_to(self.basemap.feature_groups[self.feature_group][self.name])
+#             folium.Marker([latlong.split(",")[0], latlong.split(",")[1]], popup = folium.Popup(iframe), icon = folium.features.CustomIcon(ic,icon_size=(28, 30)),tooltip=self.hdict[l].format(*self.tdict[l]) ).add_to(self.baseMap.feature_groups[self.feature_group][self.name])
+    
     def getLatLong(self, name):
         l = Nominatim(user_agent="my-application").geocode(name)
-        if (l == None):
+        if (l==None):
             return "%.2f, %.2f" % (0, 0)
         return "%.2f, %.2f" % (l.latitude, l.longitude)
-
+    
     def LatLong(self, csv_name):
         self.df["LatLong"] = self.df[self.locationcol].apply(lambda x: getLatLong(x))
         self.df.to_csv(csv_name, index=False)
