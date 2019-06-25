@@ -78,15 +78,15 @@ def country(countrycode):
     encoded = base64.b64encode(open('static/plotcountry{}-form.png'.format(countrycode), 'rb').read()).decode()
     html2 = 'data:image/png;base64,{}'.format(encoded)
     os.remove('static/plotcountry{}-form.png'.format(countrycode))
-
+    print('check')
     if request.method == 'POST':
         path = glob('./static/original/%s_dataframe_collected_finished_*.csv.gz' % (countrycode))[0]
         maindf = pd.read_csv(path)
 
         # This form is empty. Maybe you forgot to push modifications in the templates?
         print("FORM:", request.form)
+        # Sorry. Pushing the modifications now!
 
-        #new barplot:
         if request.form.getlist('gender')[0] == 'both':
             tempdf = maindf[(maindf['genders'] == 0) & (maindf['ages_ranges'] == "{u'min': 13}")]
         elif request.form.getlist('gender')[0] == 'male':
@@ -150,15 +150,15 @@ def map(countrycode):
     bmap = plotmap.baseMap(data=df, shapefile='../places.geojson')
     bmap.createGroup('Gender')
     g = plotmap.geojson(bmap, 'Gender', 'Total', locationcol='citizenship')
-    g.colorMap(column1='Total_dau', threshold_min1=0)
+    g.colorMap(column1='Total_dau', threshold_min1=1001)
     g.createMap(key='name')
 
     g = plotmap.geojson(bmap, 'Gender', 'Male', locationcol='citizenship')
-    g.colorMap(column1='Male_dau', threshold_min1=0)
+    g.colorMap(column1='Male_dau', threshold_min1=1001)
     g.createMap(key='name')
 
     g = plotmap.geojson(bmap, 'Gender', 'Female', locationcol='citizenship')
-    g.colorMap(column1='Female_dau', threshold_min1=0)
+    g.colorMap(column1='Female_dau', threshold_min1=1001)
     g.createMap(key='name')
     folium.LayerControl().add_to(bmap.map)
     return render_template_string(bmap.map.get_root().render())

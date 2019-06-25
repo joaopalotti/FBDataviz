@@ -95,9 +95,6 @@ class geojson():
 
     def colorMap(self, column1, column2=None, threshold_min1=None, threshold_min2=None, threshold_max1=None,
                  threshold_max2=None):
-        self.df['colormap1'] = self.df[column1]/self.df[column1].max()
-        column1 = 'colormap1'
-        a = threshold_min1
         if threshold_min1 == None:
             threshold_min1 = self.df[column1].min()
             a = threshold_min1
@@ -106,17 +103,13 @@ class geojson():
         self.column1 = column1
         # self.colormap = LinearColormap(['#3f372f', '#62c1a6', '#bbf9d9', '#f2f2f2'],vmin=self.df[column1].min(),
         # vmax=self.df[column1].max()).to_step(data=self.df[column1], n=5, method='quantiles')
-        # print(self.colormap)
-        # self.colormap = LinearColormap(['blue', 'green', 'yellow', 'black']).to_step(
-        # data=self.df[self.df[column1] <= threshold_max1][self.df[column1] >= threshold_min1][column1],
-        # n=4, method='quantiles')
-        self.colormap = LinearColormap(['#4f372f', '#3f372f', '#62c1a6', '#62c116', '#1b425e',
-                                        '#1b424e', '#bbf9c9', '#bbf9e9', '#ffff3f', '#ffffff'],
-                                       vmin=self.df[self.df[column1] >= a][column1].min(),
-                                       vmax=self.df[self.df[column1] <= a][column1].max()).to_step(
-            data=self.df[self.df[column1] <= threshold_max1][self.df[column1] >= a][column1], n=10, method='linear')
-        self.vdict =self.df.set_index(self.locationcol)[column1]
-        # self.vdict =self.df[self.df[column1] <= threshold_max1][self.df[column1] >= threshold_min1].set_index(self.locationcol)[column1]
+        self.colormap = LinearColormap(['#3f372f', '#1b424e', '#226b56', '#74aaa7', '#bbf9e9', '#ffffff'],
+                                       vmin=self.df[self.df[column1] >= threshold_min1][column1].min(),
+                                       vmax=self.df[self.df[column1] <= threshold_max1][column1].max()).to_step(
+            data=self.df[(self.df[column1] <= threshold_max1) & (self.df[column1] >= threshold_min1)][column1], n=6, method='quantiles')
+
+        # self.vdict =self.df.set_index(self.locationcol)[column1]
+        self.vdict =self.df[(self.df[column1] <= threshold_max1) & (self.df[column1] >= threshold_min1)].set_index(self.locationcol)[column1]
         self.baseMap.map.add_child(self.colormap)
         self.baseMap.map.add_child(BindColormap(self.baseMap.feature_groups[self.feature_group][self.name], self.colormap))
 
