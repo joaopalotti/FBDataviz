@@ -1,0 +1,19 @@
+<div id="explorediv"><br>
+    <center>
+        <a href={{ url_for('map', countrycode = cc )}} ><button type="button" class="btn btn-dark" style="width:300px;">View on Map</button> </a>
+        <button type='button' data-toggle="modal" data-target="#exploremodal" class="btn btn-primary btn-dark" style="align:right;width:300px;" >Explore</button>
+    </center>
+    <div class="modal fade bd-example-modal-lg show" id="exploremodal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+              <center>
+                  <h5>Additional Information</h5>
+                  <img style="width: auto; height: 200px; align: 'center'" src="{{ pie1 }}" alt="Oops">
+              </center>
+        </div>
+      </div>
+    </div>
+    <script>
+        $('#exploremodal').modal('show')
+    </script>
+</div>

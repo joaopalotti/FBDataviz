@@ -58,7 +58,7 @@
                             <p style="font-size:20px;">Expat distribution from top sending countries</p>
                             <!--<img style="width: auto; height: 400px; align: 'center'" src="{{ url_for('static', filename='plotcountry'+cc+'.png') }}" alt="Try again">
                             <img style="width: auto; height: 400px; align: 'center'" src="{{ plot }}" alt="Try again"> -->
-                            <a href="#" data-toggle="modal" data-target=".bd-example-modal-lg" title="Expat distribution in {{ country }}"><img style="width: auto; height: 400px; align: 'center'" src={{ htmlstring1 }}></a>
+                            <a href="#" data-toggle="modal" data-target="#bd-example-modal-lg2" title="Expat distribution in {{ country }}"><img style="width: auto; height: 400px; align: 'center'" src={{ htmlstring1 }}></a>
                         </center>
                     </div>
                 </div>
@@ -68,8 +68,8 @@
             <!-- Modal for image explanation -->
             <!--<button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg">Large modal</button>-->
 
-            <div class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
-              <div class="modal-dialog modal-lg">
+            <div class="modal fade bd-example-modal-lg show" id="bd-example-modal-lg2" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+              <div class="modal-dialog modal-lg show">
                 <div class="modal-content overflow-auto">
                     <br>
                     <h5>Expat distribution in {{ country }} from top ten sending countries</h5>
@@ -79,19 +79,36 @@
               </div>
             </div>
 
-            <div class="container">
-                 <br>
+            <div class="container" id="explorediv">
                  <br>
                 <center>
-                <a href={{ url_for('map', countrycode = cc )}} ><button type="button" class="btn btn-dark">View on Map</button> </a>
+                <a href={{ url_for('map', countrycode = cc )}} ><button type="button" class="btn btn-dark" style="width:300px;">View on Map</button> </a>
+                    <button type='button' id='explore' class="btn btn-primary btn-dark" style="align:right;width:300px;" >Explore</button>
                 </center>
             </div>
 
         </center>
     </div>
-<br><br><br>
-
-
+<br><br><br><!--
+<div id="explorediv">
+</div> -->
+<!-- for explore -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script>
+$("#explore").click(function(){
+    $.ajax({
+      url: "../../explore",
+      type: "get",
+      data: {cc: '{{cc}}'},
+      success: function(response) {
+        $("#explorediv").html(response);
+      },
+      error: function(xhr) {
+        //Do Something to handle error
+      }
+    });
+});
+</script>
 
 <div class="bluecontainer">
     <div class="container">
@@ -172,7 +189,7 @@
     <br>
     <br>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
 <script>
 $("#plotbtn").click(function(){
     //var text = $(this).val();

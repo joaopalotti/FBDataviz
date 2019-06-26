@@ -93,6 +93,24 @@ def plotgraph():
     return render_template('plotgraph.html', plot=plothtml, gender=gender, scholarities=scholarities, os=os_var)
 
 
+@app.route('/explore')
+def explore():
+    countrycode = request.args.get('cc')
+    path = glob('static/simplified/{}.csv.gz'.format(countrycode))[0]
+    df = pd.read_csv(path)
+    df = df.set_index('citizenship')
+    array = ["Male_mau", "Female_mau"]
+    labels = ('Male', 'Female')
+    fig1, ax1 = plt.subplots(figsize=(3, 2))
+    ax1.pie([df.loc['All', 'Male_mau'], df.loc['All', 'Female_mau']], labels=labels, autopct='%1.1f%%', shadow=True,startangle=90)
+    plt.savefig('static/myfig.png', transparent=True)
+    plt.close()
+    encoded = base64.b64encode(open('static/myfig.png', 'rb').read()).decode()
+    piehtml = 'data:image/png;base64,{}'
+    piehtml = piehtml.format(encoded)
+
+    return render_template("explore.html", pie1=piehtml)
+
 
 #Using this function to remove the characters in the end
 #Can we alternatively use re?
