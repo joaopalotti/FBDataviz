@@ -1,14 +1,16 @@
 from flask import Flask, request, render_template, render_template_string
 import pandas as pd
 from glob import glob
-import folium, json
-import requests, os, base64
+import folium
+import json
+import requests
+import os
+import base64
 from matplotlib import pyplot as plt
 from bs4 import BeautifulSoup
 
 # My functions
 import plotmap
-import simplifydf
 import mapping
 import mapnavbar
 
