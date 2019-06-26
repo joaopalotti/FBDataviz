@@ -1,13 +1,18 @@
 from flask import Flask, request, render_template, render_template_string
 import pandas as pd
-import folium, json, mapping, simplifydf
 from glob import glob
-import plotmap, requests, os, base64, mapnavbar
+import folium, json
+import requests, os, base64
 from matplotlib import pyplot as plt
 from bs4 import BeautifulSoup
 
-app = Flask(__name__)
+# My functions
+import plotmap
+import simplifydf
+import mapping
+import mapnavbar
 
+app = Flask(__name__)
 
 @app.route('/')
 def index():
@@ -21,8 +26,6 @@ def index():
     country_list = sorted(countries.items(), key=lambda x: x[1])
     li_path, li_country = zip(*country_list)
     return render_template("index.html", list_path=li_path, list_country=li_country, length=length)
-
-
 
 
 @app.route('/plotgraph')
@@ -117,7 +120,7 @@ def country(countrycode):
 
     url = 'http://data.un.org/en/iso/{}.html'.format(countrycode)
     countryData = requests.get(url).text
-    soup = BeautifulSoup(countryData)
+    soup = BeautifulSoup(countryData, 'lxml')
     tables = soup.find_all("tbody")
     lists, i = [[], []], 1
     for tag in tables[1].find_all('td'):
@@ -148,16 +151,13 @@ def country(countrycode):
 
 @app.route('/map/<countrycode>')
 def map(countrycode):
-    # path = glob('./static/original/{}_data*.csv.gz'.format(countrycode))[0]
-
-    # df = pd.read_csv(path)
-    # df = simplifydf.simplify(df)
-    path = glob('static/simplified/{}.csv.gz'.format(countrycode))[0]
+    path = glob('./static/simplified/{}.csv.gz'.format(countrycode))[0]
     df = pd.read_csv(path)
-    bmap = plotmap.baseMap(data=df, shapefile='../places.geojson')
+
+    bmap = plotmap.BaseMap(data=df, shapefile='../places.geojson')
     bmap.createGroup('Gender')
-    g = plotmap.geojson(bmap, 'Gender', 'Total', locationcol='citizenship')
-    g.colorMap(column1='Total_dau', threshold_min1=1001)
+    g = plotmap.Geojson(bmap, 'Gender', 'Total', locationcol='citizenship')
+    g.colorMap(column1='Total_mau', threshold_min1=1001)
     g.createMap(key='name')
 
     g.addValue(["Male_mau", "Female_mau"], " of the population are males")
@@ -176,48 +176,48 @@ def map(countrycode):
     g.createPlots(["Graduated_mau", "High_School_mau", "No_Degree_mau"], ["Graduated", "High School", "No degree"])
 
     g.addInfoBox()
-    #
-    # g = plotmap.geojson(bmap, 'Gender', 'Male', locationcol='citizenship')
-    # g.colorMap(column1='Male_dau', threshold_min1=1001)
-    # g.createMap(key='name')
-    #
-    # g.addValue(["Male_mau", "Female_mau"], " of the population are males")
-    # g.addValue(['Female_mau', "Male_mau", ], " of the population are females")
-    #
-    # g.addValue(["Other_mau", "iOS_mau", "Android_mau"], " of the population are using other operating system")
-    # g.addValue(["iOS_mau", "Other_mau", "Android_mau"], " of the population are using iOS operating system")
-    # g.addValue(["Android_mau", "iOS_mau", "Other_mau"], " of the population are using Android operating system")
-    #
-    # g.addValue(["No_Degree_mau", "Graduated_mau", "High_School_mau"], " of the population do not have a degree")
-    # g.addValue(["Graduated_mau", "High_School_mau", "No_Degree_mau"], " of the population graduated from college")
-    # g.addValue(["High_School_mau", "Graduated_mau", "No_Degree_mau"], " of the population have a high school degree")
-    #
-    # g.createPlots(["Male_mau", "Female_mau"], ['Men', 'Women'])
-    # g.createPlots(["iOS_mau", "Android_mau", "Other_mau"], ["iOS", "Android", "Others"])
-    # g.createPlots(["Graduated_mau", "High_School_mau", "No_Degree_mau"], ["Graduated", "High School", "No degree"])
-    #
-    # g.addInfoBox()
-    #
-    # g = plotmap.geojson(bmap, 'Gender', 'Female', locationcol='citizenship')
-    # g.colorMap(column1='Female_dau', threshold_min1=1001)
-    # g.createMap(key='name')
-    #
-    # g.addValue(["Male_mau", "Female_mau"], " of the population are males")
-    # g.addValue(['Female_mau', "Male_mau", ], " of the population are females")
-    #
-    # g.addValue(["Other_mau", "iOS_mau", "Android_mau"], " of the population are using other operating system")
-    # g.addValue(["iOS_mau", "Other_mau", "Android_mau"], " of the population are using iOS operating system")
-    # g.addValue(["Android_mau", "iOS_mau", "Other_mau"], " of the population are using Android operating system")
-    #
-    # g.addValue(["No_Degree_mau", "Graduated_mau", "High_School_mau"], " of the population do not have a degree")
-    # g.addValue(["Graduated_mau", "High_School_mau", "No_Degree_mau"], " of the population graduated from college")
-    # g.addValue(["High_School_mau", "Graduated_mau", "No_Degree_mau"], " of the population have a high school degree")
-    #
-    # g.createPlots(["Male_mau", "Female_mau"], ['Men', 'Women'])
-    # g.createPlots(["iOS_mau", "Android_mau", "Other_mau"], ["iOS", "Android", "Others"])
-    # g.createPlots(["Graduated_mau", "High_School_mau", "No_Degree_mau"], ["Graduated", "High School", "No degree"])
-    #
-    # g.addInfoBox()
+
+    g = plotmap.Geojson(bmap, 'Gender', 'Male', locationcol='citizenship')
+    g.colorMap(column1='Male_mau', threshold_min1=1001)
+    g.createMap(key='name')
+
+    g.addValue(["Male_mau", "Female_mau"], " of the population are males")
+    g.addValue(['Female_mau', "Male_mau", ], " of the population are females")
+
+    g.addValue(["Other_mau", "iOS_mau", "Android_mau"], " of the population are using other operating system")
+    g.addValue(["iOS_mau", "Other_mau", "Android_mau"], " of the population are using iOS operating system")
+    g.addValue(["Android_mau", "iOS_mau", "Other_mau"], " of the population are using Android operating system")
+
+    g.addValue(["No_Degree_mau", "Graduated_mau", "High_School_mau"], " of the population do not have a degree")
+    g.addValue(["Graduated_mau", "High_School_mau", "No_Degree_mau"], " of the population graduated from college")
+    g.addValue(["High_School_mau", "Graduated_mau", "No_Degree_mau"], " of the population have a high school degree")
+
+    g.createPlots(["Male_mau", "Female_mau"], ['Men', 'Women'])
+    g.createPlots(["iOS_mau", "Android_mau", "Other_mau"], ["iOS", "Android", "Others"])
+    g.createPlots(["Graduated_mau", "High_School_mau", "No_Degree_mau"], ["Graduated", "High School", "No degree"])
+
+    g.addInfoBox()
+
+    g = plotmap.geojson(bmap, 'Gender', 'Female', locationcol='citizenship')
+    g.colorMap(column1='Female_dau', threshold_min1=1001)
+    g.createMap(key='name')
+
+    g.addValue(["Male_mau", "Female_mau"], " of the population are males")
+    g.addValue(['Female_mau', "Male_mau", ], " of the population are females")
+
+    g.addValue(["Other_mau", "iOS_mau", "Android_mau"], " of the population are using other operating system")
+    g.addValue(["iOS_mau", "Other_mau", "Android_mau"], " of the population are using iOS operating system")
+    g.addValue(["Android_mau", "iOS_mau", "Other_mau"], " of the population are using Android operating system")
+
+    g.addValue(["No_Degree_mau", "Graduated_mau", "High_School_mau"], " of the population do not have a degree")
+    g.addValue(["Graduated_mau", "High_School_mau", "No_Degree_mau"], " of the population graduated from college")
+    g.addValue(["High_School_mau", "Graduated_mau", "No_Degree_mau"], " of the population have a high school degree")
+
+    g.createPlots(["Male_mau", "Female_mau"], ['Men', 'Women'])
+    g.createPlots(["iOS_mau", "Android_mau", "Other_mau"], ["iOS", "Android", "Others"])
+    g.createPlots(["Graduated_mau", "High_School_mau", "No_Degree_mau"], ["Graduated", "High School", "No degree"])
+
+    g.addInfoBox()
 
     '''bmap.createGroup('Facts')
     f= plotmap.interestingFacts(bmap, 'Facts', 'interesting fact', 'citizenship')
