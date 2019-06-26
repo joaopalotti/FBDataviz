@@ -25,10 +25,9 @@
         </ul>
       </div>
     </nav>
-    <br><br>
+    <br>
     <div class="container">
         <center>
-            <br>
             <h2>
                 {{ country }}
             </h2>
@@ -56,14 +55,29 @@
                     </div>
                     <div class="col-lg-5">
                         <center>
-                            <p style="font-size:24px;">Expat distribution</p>
+                            <p style="font-size:20px;">Expat distribution from top sending countries</p>
                             <!--<img style="width: auto; height: 400px; align: 'center'" src="{{ url_for('static', filename='plotcountry'+cc+'.png') }}" alt="Try again">
                             <img style="width: auto; height: 400px; align: 'center'" src="{{ plot }}" alt="Try again"> -->
-                            <img style="width: auto; height: 400px; align: 'center'" src={{ htmlstring1 }}>
+                            <a href="#" data-toggle="modal" data-target=".bd-example-modal-lg" title="Expat distribution in {{ country }}"><img style="width: auto; height: 400px; align: 'center'" src={{ htmlstring1 }}></a>
                         </center>
                     </div>
                 </div>
             </div><br>
+
+
+            <!-- Modal for image explanation -->
+            <!--<button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg">Large modal</button>-->
+
+            <div class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+              <div class="modal-dialog modal-lg">
+                <div class="modal-content overflow-auto">
+                    <br>
+                    <h5>Expat distribution in {{ country }} from top ten sending countries</h5>
+                    <img style="width: auto; height: 400px; align: 'center'" src={{ htmlstring1 }}>
+
+                </div>
+              </div>
+            </div>
 
             <div class="container">
                  <br>
