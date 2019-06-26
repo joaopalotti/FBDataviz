@@ -155,69 +155,125 @@ class Geojson():
             self.geodata = json.load(open(shapefile))
         self.baseMap.feature_groups[self.feature_group][self.name] = folium.map.FeatureGroup(name=name, show=False).add_to(self.baseMap.map)
 
-    def colorMap(self, column1, column2 = None, threshold_min1 = None, threshold_min2 = None,
-                                threshold_max1 = None, threshold_max2 = None, method = 'linear'):
+    
+    def colorMap(self,column1, column2 = None):
+        template = """
+{% macro html(this, kwargs) %}
 
-        """
-            TODO: explain parameters.
-        """
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  
+  <script>
+  $( function() {
+    $( "#maplegend" ).draggable({
+                    start: function (event, ui) {
+                        $(this).css({
+                            right: "auto",
+                            top: "auto",
+                            bottom: "auto"
+                        });
+                    }
+                });
+});
 
-        if threshold_min1 is None:
-            threshold_min1 = self.df[column1].min()
+  </script>
+</head>
+<body>
 
-        if threshold_max1 is None:
-            threshold_max1 = self.df[column1].max()
+ 
+<div id='maplegend' class='maplegend' 
+    style='position: absolute; z-index:9999; border:2px solid grey; background-color:rgba(255, 255, 255, 0.8);
+     border-radius:6px; padding: 10px; font-size:14px; right: 20px; bottom: 20px;'>
+     
+<div class='legend-title'>Migrants from each country</div>
+<div class='legend-scale'>
+  <ul class='legend-labels'>
+    <li><span style='background:#0392cf;opacity:1;'></span>1,001 to 10,001</li>
+    <li><span style='background:#7bc043;opacity:1;'></span>1,0001 to 20,001</li>
+    <li><span style='background:#fdf498 ;opacity:1;'></span>20,001 to 50,001</li>
+    <li><span style='background:#f37736;opacity:1;'></span>50,001 to 100,001</li>
+    <li><span style='background:#ee4035;opacity:1;'></span>greater than 100,001</li>
 
-        self.column1 = column1
-        # self.colormap = LinearColormap(['#3f372f', '#62c1a6', '#bbf9d9', '#f2f2f2'],vmin=self.df[column1].min(),
-        # vmax=self.df[column1].max()).to_step(data=self.df[column1], n=5, method='quantiles')
-        self.colormap = LinearColormap(['#3f372f', '#1b424e', '#226b56', '#74aaa7', '#bbf9e9', '#ffffff'],
-                                       vmin=self.df[self.df[column1] >= threshold_min1][column1].min(),
-                                       vmax=self.df[self.df[column1] <= threshold_max1][column1].max()).to_step(
-            data=self.df[(self.df[column1] <= threshold_max1) & (self.df[column1] >= threshold_min1)][column1], n=6, method=method)
+  </ul>
+</div>
+</div>
+ 
+</body>
+</html>
 
-        # self.vdict =self.df.set_index(self.locationcol)[column1]
-        self.vdict = self.df[(self.df[column1] <= threshold_max1) & (self.df[column1] >= threshold_min1)].set_index(self.locationcol)[column1]
-        self.baseMap.map.add_child(self.colormap)
-        self.baseMap.map.add_child(BindColormap(self.baseMap.feature_groups[self.feature_group][self.name], self.colormap))
+<style type='text/css'>
+  .maplegend .legend-title {
+    text-align: left;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 90%;
+    }
+  .maplegend .legend-scale ul {
+    margin: 0;
+    margin-bottom: 5px;
+    padding: 0;
+    float: left;
+    list-style: none;
+    }
+  .maplegend .legend-scale ul li {
+    font-size: 80%;
+    list-style: none;
+    margin-left: 0;
+    line-height: 18px;
+    margin-bottom: 2px;
+    }
+  .maplegend ul.legend-labels li span {
+    display: block;
+    float: left;
+    height: 16px;
+    width: 30px;
+    margin-right: 5px;
+    margin-left: 0;
+    border: 1px solid #999;
+    }
+  .maplegend .legend-source {
+    font-size: 80%;
+    color: #777;
+    clear: both;
+    }
+  .maplegend a {
+    color: #777;
+    }
+</style>
+{% endmacro %}"""
 
-        if column2 is None:
-            self.colormap2 = None
-        else:
-            if threshold_min2 is None:
-                threshold_min2 = self.df[column2].min()
-            if threshold_max2 is None:
-                threshold_max2 = self.df[column2].max()
-            self.column2 = column2
-            self.colormap2 = LinearColormap(['#3f372f', '#62c1a6', '#1b425e', '#bbf9d9', '#ffffff'],
-                                            vmin=self.df[self.df[column2] >= threshold_min2][column2].min(),
-                                            vmax=self.df[self.df[column2] <= threshold_max2][column2].max()).to_step(
-                data=self.df[self.df[column2] <= threshold_max2][self.df[column2] >= 0][column2], n=5,
-                method=method)
-            self.vdict2 = self.df[self.df[column2] <= threshold_max2][self.df[column2] >= threshold_min2].set_index(self.locationcol)[column2]
-            self.baseMap.map.add_child(self.colormap2)
-            self.baseMap.map.add_child(
-                BindColormap(self.baseMap.feature_groups[self.feature_group][self.name], self.colormap2))
-
+        macro = MacroElement()
+        tm=Template(template)
+        macro._template = tm
+        self.macro=macro
+        self.vdict = self.df.set_index(self.locationcol)[column1] 
+          
 
     def createMap(self, key = 'name'):
-
-        """Creates the Choropleth map.
-
-        Examples
-        --------
-        >>> geo.createMap()
-
-        """
         self.key = key
-        folium.GeoJson(self.geodata,
+        folium.GeoJson(self.geodata, 
                        style_function=lambda feature: {
-                        'fillColor': (self.colormap(self.vdict[feature['properties'][self.key]]) if feature['properties'][self.key] in self.vdict else 'grey')
-                                        if self.column1 is not None else 'black',
-                        'color': (self.colormap2(self.vdict2[feature['properties'][self.key]]) if feature['properties'][self.key] in self.vdict2 else 'grey') if self.column2 is not None else 'black',
-                        'weight': 2 if self.column2 is not None else 0.5,
-                        'fillOpacity': 1 if feature['properties'][self.key] in self.vdict else 0},
-                        tooltip=folium.features.GeoJsonTooltip(fields=[self.key], labels=False, sticky=False)).add_to(self.baseMap.feature_groups[self.feature_group][self.name])
+                         'fillColor': 'grey' if feature['properties'][self.key] not in self.vdict
+                        else 'grey' if self.vdict[feature['properties'][self.key]]<1001
+                        else '#0392cf' if self.vdict[feature['properties'][self.key]]<10001
+                        else '#7bc043' if self.vdict[feature['properties'][self.key]]<20001
+                        else '#fdf498' if self.vdict[feature['properties'][self.key]]<50001
+                        else '#f37736' if self.vdict[feature['properties'][self.key]]<100001
+                        else '#ee4035', 
+      'color': 'black',
+      'weight': 2 if (self.column2 != None) else 0.5,
+      'fillOpacity': 1 if feature['properties'][self.key] in self.vdict else 0},
+       tooltip=folium.features.GeoJsonTooltip(fields=[self.key],
+                                          labels=False,
+                                          sticky=False)).add_to(self.baseMap.feature_groups[self.feature_group][self.name])
+        self.macro.add_to(self.baseMap.feature_groups[self.feature_group][self.name])
 
     def addValue(self, columns, string):
 
