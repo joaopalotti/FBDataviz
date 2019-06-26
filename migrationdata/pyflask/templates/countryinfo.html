@@ -97,67 +97,58 @@
                 <br>
             </div>
             <div class="col-lg-5">
-
-                        <!--<p style="font-size:24px; text-align: right;">Plot a graph:</p> -->
-                        <br><br><br>
-                       <!--<form action="{{ url_for('country', countrycode=cc)}}" method="post">-->
-                        <div class="row">
-                            <br>
-                            <div class="form-group col-lg-4">
-                                <center>
-                                <p style="font-size:24px;">Gender</p>
-                                <div class="radio" checked>
-                                  <label><input type="radio" name="gender" value="male">Male</label>
-                                </div>
-                                <div class="radio">
-                                  <label><input type="radio" name="gender" value="female">Female</label>
-                                </div>
-                                <div class="radio" checked>
-                                  <label><input type="radio" name="gender" value="both">Both</label>
-                                </div>
-                                </center>
-                                </div>
-                                <br>
-                                    <div class="form-group col-lg-4">
-                                        <center>
-                                <p style="font-size:24px;">Scholarities</p>
-                                <div class="radio">
-                                  <label><input type="radio" name="scholarities" value="graduated">Graduated</label>
-                                </div>
-                                <div class="radio">
-                                  <label><input type="radio" name="scholarities" value="highschool">High School</label>
-                                </div>
-                                <div class="radio">
-                                  <label><input type="radio" name="scholarities" value="nodegree">No Degree</label>
-                                </div>
-                                <div class="radio" checked>
-                                  <label><input type="radio" name="scholarities" value="all">All</label>
-                                </div><br><br>
-                                 <button type='button' id='plotbtn' class="btn btn-primary btn-dark" style="align:right;" >Plot</button>
-
-                                        </center>
-                                    </div>
-                                <br>
-                                <div class="form-group col-lg-4">
-                                    <center>
-                                <p style="font-size:24px;">OS used</p>
-                                <div class="radio">
-                                  <label><input type="radio" name="os" value="ios">iOS</label>
-                                </div>
-                                <div class="radio">
-                                  <label><input type="radio" name="os" value="andriod">Android</label>
-                                </div>
-                                <div class="radio">
-                                  <label><input type="radio" name="os" value="others">Others</label>
-                                </div>
-                                <div class="radio" checked>
-                                  <label><input type="radio" name="os" value="all">All</label>
-                                </div>
-                                <br>
-                                    </center>
-                            </div>
-
-                            </div>
+                <!--<p style="font-size:24px; text-align: right;">Plot a graph:</p> -->
+                <br><br><br>
+                <!--<form action="{{ url_for('country', countrycode=cc)}}" method="post">-->
+                <div class="row">
+                    <br>
+                    <div class="form-group col-lg-4" align="left">
+                        <p style="font-size:24px;">Gender</p>
+                        <div class="radio" checked>
+                            <label><input type="radio" name="gender" value="male">Male</label>
+                        </div>
+                        <div class="radio">
+                            <label><input type="radio" name="gender" value="female">Female</label>
+                        </div>
+                        <div class="radio" checked>
+                            <label><input type="radio" name="gender" value="both">Both</label>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="form-group col-lg-4" align="left">
+                        <p style="font-size:24px;">Scholarities</p>
+                        <div class="radio">
+                            <label><input type="radio" name="scholarities" value="graduated">Graduated</label>
+                        </div>
+                        <div class="radio">
+                            <label><input type="radio" name="scholarities" value="highschool">High School</label>
+                        </div>
+                        <div class="radio">
+                            <label><input type="radio" name="scholarities" value="nodegree">No Degree</label>
+                        </div>
+                        <div class="radio" checked>
+                            <label><input type="radio" name="scholarities" value="all">All</label>
+                        </div><br><br>
+                        <button type='button' id='plotbtn' class="btn btn-primary btn-dark" style="align:right;" >Plot</button>
+                    </div>
+                    <br>
+                    <div class="form-group col-lg-4" align="left">
+                        <p style="font-size:24px;">OS used</p>
+                        <div class="radio">
+                            <label><input type="radio" name="os" value="ios">iOS</label>
+                        </div>
+                        <div class="radio">
+                            <label><input type="radio" name="os" value="andriod">Android</label>
+                        </div>
+                        <div class="radio">
+                            <label><input type="radio" name="os" value="others">Others</label>
+                        </div>
+                        <div class="radio" checked>
+                            <label><input type="radio" name="os" value="all">All</label>
+                        </div>
+                        <br>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
