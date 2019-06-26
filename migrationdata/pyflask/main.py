@@ -200,7 +200,7 @@ def map(countrycode):
 
     g.addInfoBox()
 
-    g = plotmap.geojson(bmap, 'Gender', 'Female', locationcol='citizenship')
+    g = plotmap.Geojson(bmap, 'Gender', 'Female', locationcol='citizenship')
     g.colorMap(column1='Female_dau', threshold_min1=1001)
     g.createMap(key='name')
 
