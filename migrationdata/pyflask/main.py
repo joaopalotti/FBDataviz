@@ -122,7 +122,7 @@ def country(countrycode):
 
     url = 'http://data.un.org/en/iso/{}.html'.format(countrycode)
     countryData = requests.get(url).text
-    soup = BeautifulSoup(countryData, 'lxml')
+    soup = BeautifulSoup(countryData)
     tables = soup.find_all("tbody")
     lists, i = [[], []], 1
     for tag in tables[1].find_all('td'):
