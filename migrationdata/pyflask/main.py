@@ -159,7 +159,8 @@ def map(countrycode):
     bmap = plotmap.BaseMap(data=df, shapefile='../places.geojson')
     bmap.createGroup('Gender')
     g = plotmap.Geojson(bmap, 'Gender', 'Total', locationcol='citizenship')
-    g.colorMap(column1='Total_mau', threshold_min1=1001)
+    g.colorMap(column1='Total_mau')
+    #g.colorMap(column1='Total_mau', threshold_min1=1001)
     g.createMap(key='name')
 
     g.addValue(["Male_mau", "Female_mau"], " of the population are males")
@@ -178,9 +179,10 @@ def map(countrycode):
     g.createPlots(["Graduated_mau", "High_School_mau", "No_Degree_mau"], ["Graduated", "High School", "No degree"])
 
     g.addInfoBox()
-
+   
     g = plotmap.Geojson(bmap, 'Gender', 'Male', locationcol='citizenship')
-    g.colorMap(column1='Male_mau', threshold_min1=1001)
+    g.colorMap(column1='Male_mau')
+    #g.colorMap(column1='Male_mau', threshold_min1=1001)
     g.createMap(key='name')
 
     g.addValue(["Male_mau", "Female_mau"], " of the population are males")
@@ -201,7 +203,8 @@ def map(countrycode):
     g.addInfoBox()
 
     g = plotmap.Geojson(bmap, 'Gender', 'Female', locationcol='citizenship')
-    g.colorMap(column1='Female_dau', threshold_min1=1001)
+    g.colorMap(column1='Female_mau')
+    #g.colorMap(column1='Female_dau', threshold_min1=1001)
     g.createMap(key='name')
 
     g.addValue(["Male_mau", "Female_mau"], " of the population are males")
