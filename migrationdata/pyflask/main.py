@@ -45,6 +45,8 @@ def plotgraph():
         tempdf = maindf[(maindf['genders'] == 1) & (maindf['ages_ranges'] == "{u'min': 13}")]
     elif gender == 'female':
         tempdf = maindf[(maindf['genders'] == 2) & (maindf['ages_ranges'] == "{u'min': 13}")]
+    else:
+        print("ERROR!!!! You forgot to select a gender.")
 
     if scholarities == 'all':
         tempdf = tempdf[tempdf['scholarities'].isnull()]
@@ -54,6 +56,8 @@ def plotgraph():
         tempdf = tempdf[tempdf['scholarities'] == "{u'name': u'No Degree', u'or': [1, 12, 13]}"]
     elif scholarities == 'highschool':
         tempdf = tempdf[tempdf['scholarities'] == "{u'name': u'High School', u'or': [2, 4, 5, 6, 10]}"]
+    else:
+        print("ERROR!!!! You forgot to select a scholarity option.")
 
     if os_var == 'all':
         tempdf = tempdf[tempdf['access_device'].isnull()]
@@ -63,28 +67,30 @@ def plotgraph():
         tempdf = tempdf[tempdf['access_device'] == "{u'or': [6004386044572], u'name': u'Android'}"]
     elif os_var == 'others':
         tempdf = tempdf[tempdf['access_device'] == "{u'not': [6004384041172, 6004386044572], u'name': u'Other'}"]
+    else:
+        print("ERROR!!!! You forgot to select an OS type.")
 
     tempdf = tempdf[['citizenship', 'mau_audience']]
-    tempdf = tempdf.dropna(subset=['citizenship'])
+    # We make a copy of the dataframe, this way we can alter it later
+    tempdf = tempdf.dropna(subset=['citizenship']).copy()
 
+    tempdf["citizenship"] = tempdf["citizenship"].apply(lambda s: s[s.find("(")+1:s.find(")")])
 
-    for index, rows in tempdf.iterrows():
-        if tempdf.citizenship[index] == "{u'not': [6015559470583], u'name': u'All - Expats'}":
-            tempdf.citizenship[index] = "Locals"
-        else:
-            tempdf.citizenship[index] = tempdf.loc[index, 'citizenship'][
-                                        tempdf.loc[index, 'citizenship'].find('(') + 1:tempdf.loc[
-                                            index, 'citizenship'].find(
-                                            ')')]
-    tempdf = tempdf[tempdf['citizenship'].apply(lambda x: x not in set(['All', 'Locals']))]
+    locals_str = "{u'not': [6015559470583], u'name': u'All - Expats'"
+    tempdf.at[tempdf[tempdf["citizenship"] == locals_str].index[0], "citizenship"] = "Locals"
+    tempdf = tempdf[~tempdf["citizenship"].isin(["Locals", "All ", "All"])]
+    tempdf = tempdf[tempdf["mau_audience"] > 1000]
+
     fig, ax = plt.subplots(figsize=(9.5, 6))
-    if tempdf[tempdf['mau_audience'] > 1000].empty:
-        plothtml = ""
+    if tempdf.empty:
+        # ToDo: have an empty plot to load in this case.
+        plothtml = '<img src="static/empty.png" style="width: auto; height: 400px" title="Empty" alt="">'
     else:
-        tempdf[tempdf['mau_audience'] > 1000].set_index('citizenship').sort_values('mau_audience', ascending=False).head(10)[::-1]['mau_audience'].plot(kind='barh')
+        tempdf.set_index('citizenship').sort_values('mau_audience', ascending=False).head(10)[::-1]['mau_audience'].plot(kind='barh')
         ax.set_xlabel('', labelpad=15)
         ax.set_ylabel('', labelpad=30)
         plt.savefig('static/plot.png', transparent=True)
+        plt.close()
         encoded = base64.b64encode(open('static/plot.png', 'rb').read()).decode()
         plothtml = 'data:image/png;base64,{}'
         plothtml = plothtml.format(encoded)
@@ -134,13 +140,14 @@ def country(countrycode):
     ax.set_ylabel('', labelpad=30)
 
     plt.savefig('static/plotcountry1{}.png'.format(countrycode), transparent=True)
+    plt.close()
     encoded = base64.b64encode(open('static/plotcountry1{}.png'.format(countrycode), 'rb').read()).decode()
     html1 = 'data:image/png;base64,{}'.format(encoded)
     os.remove('static/plotcountry1{}.png'.format(countrycode))
 
     url = 'http://data.un.org/en/iso/{}.html'.format(countrycode)
     countryData = requests.get(url).text
-    soup = BeautifulSoup(countryData)
+    soup = BeautifulSoup(countryData, "lxml")
     tables = soup.find_all("tbody")
     lists, i = [[], []], 1
     for tag in tables[1].find_all('td'):
@@ -197,7 +204,7 @@ def map(countrycode):
     g.createPlots(["Graduated_mau", "High_School_mau", "No_Degree_mau"], ["Graduated", "High School", "No degree"])
 
     g.addInfoBox()
-   
+
     g = plotmap.Geojson(bmap, 'Gender', 'Male', locationcol='citizenship')
     g.colorMap(column1='Male_mau')
     #g.colorMap(column1='Male_mau', threshold_min1=1001)
