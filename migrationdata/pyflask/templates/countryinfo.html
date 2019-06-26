@@ -10,17 +10,17 @@
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#">Migration Analysis</a>
+      <a class="navbar-brand" href={{ url_for('index') }}>Migration Analysis</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav">
           <li class="nav-item active">
-            <a class="nav-link" href="#countries">Countries <span class="sr-only">(current)</span></a>
+            <a class="nav-link" href={{ url_for('index') }}>Countries <span class="sr-only">(current)</span></a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">About</a>
+            <a class="nav-link" href={{ url_for('about') }}>About</a>
           </li>
         </ul>
       </div>
@@ -84,27 +84,27 @@
         <div class="row">
             <div class="col-lg-5">
                 <center>
-                    <p style="font-size:24px;">Expat distribution</p>
+                    <!--<p style="font-size:24px;">Plot a graph</p>-->
                 </center>
                     <!--<img style="width: auto; height: 400px; align: 'center'" src="{{ url_for('static', filename='plotcountry'+cc+'-form.png') }}" alt="Try again">
                     <img style="width: auto; height: 400px; align: 'center'" src="{{ plot }}" alt="Try again"> -->
                     <div id="plot">
                     <img style="width: auto; height: 400px;" src={{ htmlstring2 }}>
                     </div>
+                <!--<button type='button' id='plotbtn' class="btn btn-primary btn-dark" >Plot</button> -->
             </div>
             <div class="col-lg-2">
                 <br>
             </div>
             <div class="col-lg-5">
 
-                        <p style="font-size:24px;">Plot a graph:</p>
-                        <br>
+                        <!--<p style="font-size:24px; text-align: right;">Plot a graph:</p> -->
+                        <br><br><br>
                        <!--<form action="{{ url_for('country', countrycode=cc)}}" method="post">-->
-                        <form>
+                        <div class="row">
                             <br>
-                            <div class="form-group container">
-
-                                <div class="overflow-auto" style="max-height: 380px">
+                            <div class="form-group col-lg-4">
+                                <center>
                                 <p style="font-size:24px;">Gender</p>
                                 <div class="radio" checked>
                                   <label><input type="radio" name="gender" value="male">Male</label>
@@ -115,7 +115,11 @@
                                 <div class="radio" checked>
                                   <label><input type="radio" name="gender" value="both">Both</label>
                                 </div>
+                                </center>
+                                </div>
                                 <br>
+                                    <div class="form-group col-lg-4">
+                                        <center>
                                 <p style="font-size:24px;">Scholarities</p>
                                 <div class="radio">
                                   <label><input type="radio" name="scholarities" value="graduated">Graduated</label>
@@ -128,8 +132,14 @@
                                 </div>
                                 <div class="radio" checked>
                                   <label><input type="radio" name="scholarities" value="all">All</label>
-                                </div>
+                                </div><br><br>
+                                 <button type='button' id='plotbtn' class="btn btn-primary btn-dark" style="align:right;" >Plot</button>
+
+                                        </center>
+                                    </div>
                                 <br>
+                                <div class="form-group col-lg-4">
+                                    <center>
                                 <p style="font-size:24px;">OS used</p>
                                 <div class="radio">
                                   <label><input type="radio" name="os" value="ios">iOS</label>
@@ -144,12 +154,10 @@
                                   <label><input type="radio" name="os" value="all">All</label>
                                 </div>
                                 <br>
-                                </div>
-                                <br>
+                                    </center>
+                            </div>
 
                             </div>
-                              <button type='button' id='plotbtn' class="btn btn-primary btn-dark" >Plot</button>
-                        </form>
             </div>
         </div>
     </div>
