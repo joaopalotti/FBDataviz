@@ -6,6 +6,8 @@ import json
 import requests
 import os
 import base64
+import matplotlib
+matplotlib.use("Agg")
 from matplotlib import pyplot as plt
 from bs4 import BeautifulSoup
 
@@ -77,18 +79,26 @@ def plotgraph():
                                             index, 'citizenship'].find(
                                             ')')]
     tempdf = tempdf[tempdf['citizenship'].apply(lambda x: x not in set(['All', 'Locals']))]
-    fig, ax = plt.subplots(figsize=(9.5, 6))
     if tempdf[tempdf['mau_audience'] > 1000].empty:
-        plothtml = ""
-    else:
-        tempdf[tempdf['mau_audience'] > 1000].set_index('citizenship').sort_values('mau_audience', ascending=False).head(10)[::-1]['mau_audience'].plot(kind='barh')
+        fig, ax = plt.subplots(figsize=(9.5, 6))
         ax.set_xlabel('', labelpad=15)
         ax.set_ylabel('', labelpad=30)
         plt.savefig('static/plot.png', transparent=True)
+        plt.close()
         encoded = base64.b64encode(open('static/plot.png', 'rb').read()).decode()
         plothtml = 'data:image/png;base64,{}'
         plothtml = plothtml.format(encoded)
-        os.remove('static/plot.png')
+    else:
+        tempdf[tempdf['mau_audience'] > 1000].set_index('citizenship').sort_values('mau_audience', ascending=False).head(10)[::-1]['mau_audience'].plot(kind='barh')
+        fig, ax = plt.subplots(figsize=(9.5, 6))
+        ax.set_xlabel('', labelpad=15)
+        ax.set_ylabel('', labelpad=30)
+        plt.savefig('static/plot.png', transparent=True)
+        plt.close()
+        encoded = base64.b64encode(open('static/plot.png', 'rb').read()).decode()
+        plothtml = 'data:image/png;base64,{}'
+        plothtml = plothtml.format(encoded)
+        # os.remove('static/plot.png')
 
     return render_template('plotgraph.html', plot=plothtml, gender=gender, scholarities=scholarities, os=os_var)
 
@@ -125,8 +135,6 @@ def country(countrycode):
 
     df = pd.read_csv(path)
     df = df[df['citizenship'].apply(lambda x: x not in set(['All', 'Locals']))]
-
-    print(df.columns)
     fig, ax = plt.subplots(figsize=(9.5, 6))
     df[df['Total_mau']>1000].set_index('citizenship').sort_values('Total_mau', ascending=False).head(10)['Total_mau'][::-1].plot(kind='barh')
 
@@ -136,11 +144,11 @@ def country(countrycode):
     plt.savefig('static/plotcountry1{}.png'.format(countrycode), transparent=True)
     encoded = base64.b64encode(open('static/plotcountry1{}.png'.format(countrycode), 'rb').read()).decode()
     html1 = 'data:image/png;base64,{}'.format(encoded)
-    os.remove('static/plotcountry1{}.png'.format(countrycode))
+    # os.remove('static/plotcountry1{}.png'.format(countrycode))
 
     url = 'http://data.un.org/en/iso/{}.html'.format(countrycode)
     countryData = requests.get(url).text
-    soup = BeautifulSoup(countryData)
+    soup = BeautifulSoup(countryData, 'lxml')
     tables = soup.find_all("tbody")
     lists, i = [[], []], 1
     for tag in tables[1].find_all('td'):
