@@ -6,6 +6,8 @@ import json
 import requests
 import os
 import base64
+import matplotlib
+matplotlib.use("Agg")
 from matplotlib import pyplot as plt
 from bs4 import BeautifulSoup
 
@@ -45,6 +47,8 @@ def plotgraph():
         tempdf = maindf[(maindf['genders'] == 1) & (maindf['ages_ranges'] == "{u'min': 13}")]
     elif gender == 'female':
         tempdf = maindf[(maindf['genders'] == 2) & (maindf['ages_ranges'] == "{u'min': 13}")]
+    else:
+        print("ERROR!!!! You forgot to select a gender.")
 
     if scholarities == 'all':
         tempdf = tempdf[tempdf['scholarities'].isnull()]
@@ -54,6 +58,8 @@ def plotgraph():
         tempdf = tempdf[tempdf['scholarities'] == "{u'name': u'No Degree', u'or': [1, 12, 13]}"]
     elif scholarities == 'highschool':
         tempdf = tempdf[tempdf['scholarities'] == "{u'name': u'High School', u'or': [2, 4, 5, 6, 10]}"]
+    else:
+        print("ERROR!!!! You forgot to select a scholarity option.")
 
     if os_var == 'all':
         tempdf = tempdf[tempdf['access_device'].isnull()]
@@ -63,32 +69,41 @@ def plotgraph():
         tempdf = tempdf[tempdf['access_device'] == "{u'or': [6004386044572], u'name': u'Android'}"]
     elif os_var == 'others':
         tempdf = tempdf[tempdf['access_device'] == "{u'not': [6004384041172, 6004386044572], u'name': u'Other'}"]
+    else:
+        print("ERROR!!!! You forgot to select an OS type.")
 
     tempdf = tempdf[['citizenship', 'mau_audience']]
-    tempdf = tempdf.dropna(subset=['citizenship'])
 
+    # We make a copy of the dataframe, this way we can alter it later
+    tempdf = tempdf.dropna(subset=['citizenship']).copy()
 
-    for index, rows in tempdf.iterrows():
-        if tempdf.citizenship[index] == "{u'not': [6015559470583], u'name': u'All - Expats'}":
-            tempdf.citizenship[index] = "Locals"
-        else:
-            tempdf.citizenship[index] = tempdf.loc[index, 'citizenship'][
-                                        tempdf.loc[index, 'citizenship'].find('(') + 1:tempdf.loc[
-                                            index, 'citizenship'].find(
-                                            ')')]
-    tempdf = tempdf[tempdf['citizenship'].apply(lambda x: x not in set(['All', 'Locals']))]
-    fig, ax = plt.subplots(figsize=(9.5, 6))
-    if tempdf[tempdf['mau_audience'] > 1000].empty:
-        plothtml = ""
-    else:
-        tempdf[tempdf['mau_audience'] > 1000].set_index('citizenship').sort_values('mau_audience', ascending=False).head(10)[::-1]['mau_audience'].plot(kind='barh')
+    tempdf["citizenship"] = tempdf["citizenship"].apply(lambda s: s[s.find("(")+1:s.find(")")])
+
+    locals_str = "{u'not': [6015559470583], u'name': u'All - Expats'"
+    tempdf.at[tempdf[tempdf["citizenship"] == locals_str].index[0], "citizenship"] = "Locals"
+    tempdf = tempdf[~tempdf["citizenship"].isin(["Locals", "All ", "All"])]
+    tempdf = tempdf[tempdf["mau_audience"] > 1000]
+
+    if tempdf.empty:
+        fig, ax = plt.subplots(figsize=(9.5, 6))
         ax.set_xlabel('', labelpad=15)
         ax.set_ylabel('', labelpad=30)
         plt.savefig('static/plot.png', transparent=True)
+        plt.close()
         encoded = base64.b64encode(open('static/plot.png', 'rb').read()).decode()
         plothtml = 'data:image/png;base64,{}'
         plothtml = plothtml.format(encoded)
-        os.remove('static/plot.png')
+
+    else:
+        fig, ax = plt.subplots(figsize=(9.5, 6))
+        tempdf.set_index('citizenship').sort_values('mau_audience', ascending=False).head(10)[::-1]['mau_audience'].plot(kind='barh')
+        ax.set_xlabel('', labelpad=15)
+        ax.set_ylabel('', labelpad=30)
+        plt.savefig('static/plot.png', transparent=True)
+        plt.close()
+        encoded = base64.b64encode(open('static/plot.png', 'rb').read()).decode()
+        plothtml = 'data:image/png;base64,{}'
+        plothtml = plothtml.format(encoded)
 
     return render_template('plotgraph.html', plot=plothtml, gender=gender, scholarities=scholarities, os=os_var)
 
@@ -156,7 +171,49 @@ def plotpie():
     os.remove('myfig.png')
 
     return render_template('plotpie.html', pie=piehtml, location=location, category=category)
+#
+def donutpie(group_names, group_size, subgroup_names, subgroup_size, color, subcolor):
+    # a, b, c = [plt.cm.Blues, plt.cm.Reds, plt.cm.Greens]
+    fig, ax = plt.subplots()
+    ax.axis('equal')
+    mypie, _ = ax.pie(group_size, radius=1.3, labels=group_names, colors=color)
+    plt.setp(mypie, width=0.3, edgecolor='white')
+    mypie2, _ = ax.pie(subgroup_size, radius=1.3 - 0.3, labels=subgroup_names, labeldistance=0.7,
+                       colors=subcolor)
+    plt.setp(mypie2, width=0.4, edgecolor='white')
+    plt.margins(0, 0)
+    plt.savefig('static/myfig.png', transparent=True)
+    plt.close()
+    encoded = base64.b64encode(open('static/myfig.png', 'rb').read()).decode()
+    piehtml = 'data:image/png;base64,{}'
+    piehtml = piehtml.format(encoded)
+    return piehtml
 
+@app.route('/explore')
+def explore():
+    countrycode = request.args.get('cc')
+    path = glob('static/simplified/{}.csv.gz'.format(countrycode))[0]
+    df = pd.read_csv(path)
+    df = df.set_index('citizenship')
+    a, b, c, d = [plt.cm.Blues, plt.cm.Reds, plt.cm.Greens, plt.cm.Oranges]
+    pie1 = donutpie(['Locals', 'All Expats'], [df.loc['Locals', 'Total_mau'], df.loc['All', 'Total_mau']],
+                    ['Male', 'Female', 'Male', 'Female'],
+                    [df.loc['Locals', 'Male_mau'], df.loc['Locals', 'Female_mau'], df.loc['All', 'Male_mau'], df.loc['All', 'Female_mau']],
+                    [a(0.6), b(0.6)], [a(0.5), a(0.4), b(0.5), b(0.4)])
+
+    pie2 = donutpie(['Locals', 'All Expats'], [df.loc['Locals', 'Total_mau'], df.loc['All', 'Total_mau']],
+                    ['iOS', 'Anroid', 'Others', 'iOS', 'Android', 'Others'],
+                    [df.loc['Locals', 'iOS_mau'], df.loc['Locals', 'Android_mau'], df.loc['Locals', 'Other_mau'], df.loc['All', 'iOS_mau'],
+                     df.loc['All', 'Android_mau'], df.loc['All', 'Other_mau']],
+                    [c(0.6), a(0.6)], [c(0.5), c(0.4), c(0.2), a(0.5), a(0.4),a(0.2)])
+
+    pie3 = donutpie(['Locals', 'All Expats'], [df.loc['Locals', 'Total_mau'], df.loc['All', 'Total_mau']],
+                    ['Graduated', 'High School', 'No Degree', 'Graduated', 'High School', 'No Degree'],
+                    [df.loc['Locals', 'Graduated_mau'], df.loc['Locals', 'High_School_mau'], df.loc['Locals', 'No_Degree_mau'],
+                     df.loc['All', 'Graduated_mau'],df.loc['All', 'High_School_mau'], df.loc['All', 'No_Degree_mau']],
+                    [d(0.6), c(0.6)], [d(0.5), d(0.4), d(0.2), c(0.5), c(0.4), c(0.2)])
+#["No_Degree_mau", "Graduated_mau", "High_School_mau"]
+    return render_template("explore.html", pie1=pie1, pie2=pie2, pie3=pie3)
 
 
 #Using this function to remove the characters in the end
@@ -172,8 +229,6 @@ def country(countrycode):
 
     df = pd.read_csv(path)
     df = df[df['citizenship'].apply(lambda x: x not in set(['All', 'Locals']))]
-
-    print(df.columns)
     fig, ax = plt.subplots(figsize=(9.5, 6))
     df[df['Total_mau']>1000].set_index('citizenship').sort_values('Total_mau', ascending=False).head(10)['Total_mau'][::-1].plot(kind='barh')
 
@@ -181,9 +236,10 @@ def country(countrycode):
     ax.set_ylabel('', labelpad=30)
 
     plt.savefig('static/plotcountry1{}.png'.format(countrycode), transparent=True)
+    plt.close()
     encoded = base64.b64encode(open('static/plotcountry1{}.png'.format(countrycode), 'rb').read()).decode()
     html1 = 'data:image/png;base64,{}'.format(encoded)
-    os.remove('static/plotcountry1{}.png'.format(countrycode))
+    # os.remove('static/plotcountry1{}.png'.format(countrycode))
 
     fig, ax = plt.subplots(figsize=(9.5, 6))
 
@@ -249,8 +305,9 @@ def map(countrycode):
     g.addValue(["No_Degree_mau", "Graduated_mau", "High_School_mau"], " of the population do not have a degree")
     g.addValue(["Graduated_mau", "High_School_mau", "No_Degree_mau"], " of the population graduated from college")
     g.addValue(["High_School_mau", "Graduated_mau", "No_Degree_mau"], " of the population have a high school degree")
+
     g.addInfoBox(countrycode)
-   
+
     g = plotmap.Geojson(bmap, 'Gender', 'Male', locationcol='citizenship')
     g.colorMap(column1='Male_mau')
     #g.colorMap(column1='Male_mau', threshold_min1=1001)

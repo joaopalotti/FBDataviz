@@ -25,10 +25,9 @@
         </ul>
       </div>
     </nav>
-    <br><br>
+    <br>
     <div class="container">
         <center>
-            <br>
             <h2>
                 {{ country }}
             </h2>
@@ -56,28 +55,60 @@
                     </div>
                     <div class="col-lg-5">
                         <center>
-                            <p style="font-size:24px;">Expat distribution</p>
+                            <p style="font-size:20px;">Expat distribution from top sending countries</p>
                             <!--<img style="width: auto; height: 400px; align: 'center'" src="{{ url_for('static', filename='plotcountry'+cc+'.png') }}" alt="Try again">
                             <img style="width: auto; height: 400px; align: 'center'" src="{{ plot }}" alt="Try again"> -->
-                            <img style="width: auto; height: 400px; align: 'center'" src={{ htmlstring1 }}>
+                            <a href="#" data-toggle="modal" data-target="#bd-example-modal-lg2" title="Expat distribution in {{ country }}"><img style="width: auto; height: 400px; align: 'center'" src={{ htmlstring1 }}></a>
                         </center>
                     </div>
                 </div>
             </div><br>
 
-            <div class="container">
-                 <br>
+
+            <!-- Modal for image explanation -->
+            <!--<button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg">Large modal</button>-->
+
+            <div class="modal fade bd-example-modal-lg show" id="bd-example-modal-lg2" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+              <div class="modal-dialog modal-lg show">
+                <div class="modal-content overflow-auto">
+                    <br>
+                    <h5>Expat distribution in {{ country }} from top ten sending countries</h5>
+                    <img style="width: auto; height: 400px; align: 'center'" src={{ htmlstring1 }}>
+
+                </div>
+              </div>
+            </div>
+
+            <div class="container" id="explorediv">
                  <br>
                 <center>
-                <a href={{ url_for('map', countrycode = cc )}} ><button type="button" class="btn btn-dark">View on Map</button> </a>
+                <a href={{ url_for('map', countrycode = cc )}} ><button type="button" class="btn btn-dark" style="width:300px;">View on Map</button> </a>
+                    <button type='button' id='explore' class="btn btn-primary btn-dark" style="align:right;width:300px;" >Explore</button>
                 </center>
             </div>
 
         </center>
     </div>
-<br><br><br>
-
-
+<br><br><br><!--
+<div id="explorediv">
+</div> -->
+<!-- for explore -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script>
+$("#explore").click(function(){
+    $.ajax({
+      url: "../../explore",
+      type: "get",
+      data: {cc: '{{cc}}'},
+      success: function(response) {
+        $("#explorediv").html(response);
+      },
+      error: function(xhr) {
+        //Do Something to handle error
+      }
+    });
+});
+</script>
 
 <div class="bluecontainer">
     <div class="container">
@@ -90,44 +121,46 @@
                     <img style="width: auto; height: 400px; align: 'center'" src="{{ plot }}" alt="Try again"> -->
                     <div id="plot">
                     <img style="width: auto; height: 400px;" src={{ htmlstring2 }}>
+                        <div class="border" style="margin-left:5%; padding-left:5%; width:auto; align:left; text-align:left;">
+                            <div style="font-size:18px;">Gender: Both</div>
+                            <div style="font-size:18px;">Scholarities: All</div>
+                            <div style="font-size:18px;">OS: All</div>
+                        </div>
                     </div>
-                <!--<button type='button' id='plotbtn' class="btn btn-primary btn-dark" >Plot</button> -->
             </div>
             <div class="col-lg-2">
                 <br>
             </div>
             <div class="col-lg-5">
-                <!--<p style="font-size:24px; text-align: right;">Plot a graph:</p> -->
                 <br><br><br>
-                <!--<form action="{{ url_for('country', countrycode=cc)}}" method="post">-->
                 <div class="row">
                     <br>
                     <div class="form-group col-lg-4" align="left">
                         <p style="font-size:24px;">Gender</p>
-                        <div class="radio" checked>
-                            <label><input type="radio" name="gender" value="male">Male</label>
+                        <div class="radio">
+                            <label><input type="radio" name="gender" value="male"> Male</label>
                         </div>
                         <div class="radio">
-                            <label><input type="radio" name="gender" value="female">Female</label>
+                            <label><input type="radio" name="gender" value="female"> Female</label>
                         </div>
-                        <div class="radio" checked>
-                            <label><input type="radio" name="gender" value="both">Both</label>
+                        <div class="radio">
+                            <label><input type="radio" name="gender" value="both" checked="checked"> Both</label>
                         </div>
                     </div>
                     <br>
                     <div class="form-group col-lg-4" align="left">
                         <p style="font-size:24px;">Scholarities</p>
                         <div class="radio">
-                            <label><input type="radio" name="scholarities" value="graduated">Graduated</label>
+                            <label><input type="radio" name="scholarities" value="graduated"> Graduated</label>
                         </div>
                         <div class="radio">
-                            <label><input type="radio" name="scholarities" value="highschool">High School</label>
+                            <label><input type="radio" name="scholarities" value="highschool"> High School</label>
                         </div>
                         <div class="radio">
-                            <label><input type="radio" name="scholarities" value="nodegree">No Degree</label>
+                            <label><input type="radio" name="scholarities" value="nodegree"> No Degree</label>
                         </div>
-                        <div class="radio" checked>
-                            <label><input type="radio" name="scholarities" value="all">All</label>
+                        <div class="radio">
+                            <label><input type="radio" name="scholarities" value="all" checked="checked"> All</label>
                         </div><br><br>
                         <button type='button' id='plotbtn' class="btn btn-primary btn-dark" style="align:right;" >Plot</button>
                     </div>
@@ -135,16 +168,16 @@
                     <div class="form-group col-lg-4" align="left">
                         <p style="font-size:24px;">OS used</p>
                         <div class="radio">
-                            <label><input type="radio" name="os" value="ios">iOS</label>
+                            <label><input type="radio" name="os" value="ios"> iOS</label>
                         </div>
                         <div class="radio">
-                            <label><input type="radio" name="os" value="andriod">Android</label>
+                            <label><input type="radio" name="os" value="android"> Android</label>
                         </div>
                         <div class="radio">
-                            <label><input type="radio" name="os" value="others">Others</label>
+                            <label><input type="radio" name="os" value="others"> Others</label>
                         </div>
-                        <div class="radio" checked>
-                            <label><input type="radio" name="os" value="all">All</label>
+                        <div class="radio">
+                            <label><input type="radio" name="os" value="all" checked="checked"> All</label>
                         </div>
                         <br>
                     </div>
@@ -158,7 +191,7 @@
     <br>
     <br>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
 <script>
 $("#plotbtn").click(function(){
     //var text = $(this).val();

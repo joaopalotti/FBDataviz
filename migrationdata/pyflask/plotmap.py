@@ -7,7 +7,6 @@ from branca.element import MacroElement
 from branca.colormap import  LinearColormap
 from jinja2 import Template
 import matplotlib.pyplot as plt
-from geopy.geocoders import Nominatim
 
 class BindColormap(MacroElement):
     def __init__(self, layer, colormap):
@@ -501,15 +500,3 @@ class InterestingFacts():
             self.pdict[l] += ' has the'+string+'</p></center><center><img align="middle" src="data:image/png;base64,{}"></center>'
             iframe = branca.element.IFrame(html=self.pdict[l].format(*self.pidict[l]), width=400, height = 220 + self.cdict[l]* 50)
             folium.Marker([latlong.split(",")[0], latlong.split(",")[1]], popup = folium.Popup(iframe), icon = folium.features.CustomIcon(ic,icon_size=(28, 30)),tooltip=self.hdict[l].format(*self.tdict[l]) ).add_to(self.basemap.feature_groups[self.feature_group][self.name])
-#             folium.Marker([latlong.split(",")[0], latlong.split(",")[1]], popup = folium.Popup(iframe), icon = folium.features.CustomIcon(ic,icon_size=(28, 30)),tooltip=self.hdict[l].format(*self.tdict[l]) ).add_to(self.baseMap.feature_groups[self.feature_group][self.name])
-
-    def __getLatLong(self, name):
-        l = Nominatim(user_agent="my-application").geocode(name)
-        if (l==None):
-            return "%.2f, %.2f" % (0, 0)
-        return "%.2f, %.2f" % (l.latitude, l.longitude)
-
-    def LatLong(self, csv_name):
-        self.df["LatLong"] = self.df[self.locationcol].apply(lambda x: self.__getLatLong(x))
-        self.df.to_csv(csv_name, index=False)
-
