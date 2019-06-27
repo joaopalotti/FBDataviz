@@ -354,7 +354,7 @@ class Geojson():
         self.plotcolumns = geojson.plotcolumns
         self.plotlabels = geojson.plotlabels
 
-    def addInfoBox(self):
+    def addInfoBox(self, countrycode):
 
         """Adds information box to the choropleth map as a pop up.
 
@@ -382,15 +382,25 @@ class Geojson():
                     html += "<h4 style='font-family: Arial, Helvetica, sans-serif;'>" + str(round(value/total*100., 2)) + "%" + self.valuestring[i] + "</h4>"
 
                 encodedlist = []
-                for i in range(len(self.plotcolumns)):
-                    fig1, ax1 = plt.subplots(figsize=(5,3))
+                for i in range(1):
+                    '''fig1, ax1 = plt.subplots(figsize=(2.5,1.5))
                     ax1.pie([s[j] for j in self.plotcolumns[i]], labels=self.plotlabels[i], autopct='%1.1f%%', shadow=True, startangle=90)
                     plt.savefig('myfig.png', transparent = True)
-                    plt.close()
-                    encoded = b64encode(open('myfig.png', 'rb').read()).decode()
+                    plt.close()'''
+                    name=feature['properties'][self.key]
+                    
+                    encoded = b64encode(open('gender_pie/gender{}_{}.png'.format(countrycode, name), 'rb').read()).decode()
                     encodedlist.append(encoded)
                     html += '<img align="middle" src="data:image/png;base64,{}">'
-
+                    
+                    encoded = b64encode(open('os_pie/os{}_{}.png'.format(countrycode, name), 'rb').read()).decode()
+                    encodedlist.append(encoded)
+                    html += '<img align="middle" src="data:image/png;base64,{}">'
+                    
+                    encoded = b64encode(open('edu_pie/education{}_{}.png'.format(countrycode, name), 'rb').read()).decode()
+                    encodedlist.append(encoded)
+                    html += '<img align="middle" src="data:image/png;base64,{}">'
+                    
                 html += '</center>'
 
                 geo = folium.GeoJson(feature['geometry'],
