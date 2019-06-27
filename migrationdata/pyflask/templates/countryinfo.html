@@ -53,13 +53,14 @@
                     <div class="col-lg-1">
                         <br>
                     </div>
+
                     <div class="col-lg-5">
-                        <center>
-                            <p style="font-size:20px;">Expat distribution from top sending countries</p>
+                            <p style="font-size:20px; text-align:'center'">Expat distribution in {{ country }} from top sending countries</p>
                             <!--<img style="width: auto; height: 400px; align: 'center'" src="{{ url_for('static', filename='plotcountry'+cc+'.png') }}" alt="Try again">
                             <img style="width: auto; height: 400px; align: 'center'" src="{{ plot }}" alt="Try again"> -->
-                            <a href="#" data-toggle="modal" data-target="#bd-example-modal-lg2" title="Expat distribution in {{ country }}"><img style="width: auto; height: 400px; align: 'center'" src={{ htmlstring1 }}></a>
-                        </center>
+                            <center>
+                            <a href="#" data-toggle="modal" data-target="#bd-example-modal-lg2" title="Expat distribution in {{ country }}"><img style="width: 130%; height: auto; align: 'center';" src={{ htmlstring1 }}></a>
+                            </center>
                     </div>
                 </div>
             </div><br>
@@ -99,7 +100,7 @@ $("#explore").click(function(){
     $.ajax({
       url: "../../explore",
       type: "get",
-      data: {cc: '{{cc}}'},
+      data: {cc: '{{cc}}', country: '{{country}}'},
       success: function(response) {
         $("#explorediv").html(response);
       },
