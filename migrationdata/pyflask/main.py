@@ -92,6 +92,71 @@ def plotgraph():
 
     return render_template('plotgraph.html', plot=plothtml, gender=gender, scholarities=scholarities, os=os_var)
 
+@app.route('/plotpie')
+def plotpie():
+    location = request.args.get('location')
+    category = request.args.get('category')
+    countrycode = request.args.get('cc')
+    path = glob('static/simplified/{}.csv.gz'.format(countrycode))[0]
+    maindf = pd.read_csv(path)
+    df=maindf.head(2)
+    fig, ax = plt.subplots(figsize=(9.5, 6))
+
+    if category=='Gender':
+        if location=='All':
+            male=df.loc[1]['Male_mau']
+            female=df.loc[1]['Female_mau']
+        if location=='Local':
+            male=df.loc[0]['Male_mau']
+            female=df.loc[0]['Female_mau']
+        else:
+            male=df.loc[1]['Male_mau']-df.loc[0]['Male_mau']
+            female=df.loc[1]['Female_mau']-df.loc[0]['Female_mau']
+        ax.pie([male,female], labels=['male', 'female'], autopct='%1.1f%%', shadow=True, startangle=90)
+        plt.savefig('myfig.png', transparent = True)
+        encoded = b64encode(open('myfig.png', 'rb').read()).decode()
+
+    if category=='Education':
+        if location=='All':
+            Graduated=df.loc[1]['Graduated_mau']
+            High_School=df.loc[1]['High_School_mau']
+            No_Degree=df.loc[1]['No_Degree_mau']
+        if location=='Local':
+            Graduated=df.loc[0]['Graduated_mau']
+            High_School=df.loc[0]['High_School_mau']
+            No_Degree=df.loc[0]['No_Degree_mau']
+        else:
+            Graduated=df.loc[1]['Graduated_mau']-df.loc[0]['Graduated_mau']
+            High_School=df.loc[1]['High_School_mau']-df.loc[0]['High_School_mau']
+            No_Degree=df.loc[1]['No_Degree_mau']-df.loc[0]['No_Degree_mau']
+        ax.pie([Graduated,High_School, No_Degree], labels=['Graduated', 'High_School', 'No_Degree'], autopct='%1.1f%%', shadow=True, startangle=90)
+        plt.savefig('myfig.png', transparent = True)
+        encoded = b64encode(open('myfig.png', 'rb').read()).decode()
+            
+    if category=='OS':
+        if location=='All':
+            other=df.loc[1]['Other_mau']
+            ios=df.loc[1]['iOS_mau']
+            android=df.loc[1]['Android_mau']
+        if location=='Local':
+            other=df.loc[0]['Other_mau']
+            ios=df.loc[0]['iOS_mau']
+            android=df.loc[0]['Android_mau']
+        else:
+            other=df.loc[1]['Other_mau']-df.loc[0]['Other_mau']
+            ios=df.loc[1]['iOS_mau']-df.loc[0]['iOS_mau']
+            android=df.loc[1]['Android_mau']-df.loc[0]['Android_mau']
+        ax.pie([other,ios, android], labels=['other', 'ios', 'android'], autopct='%1.1f%%', shadow=True, startangle=90)
+        plt.savefig('myfig.png', transparent = True)
+        encoded = b64encode(open('myfig.png', 'rb').read()).decode()
+        
+
+    piehtml = 'data:image/png;base64,{}'
+    piehtml = pietml.format(encoded)
+    os.remove('myfig.png')
+
+    return render_template('plotpie.html', pie=piehtml, location=location, category=category)
+
 
 
 #Using this function to remove the characters in the end
@@ -120,9 +185,20 @@ def country(countrycode):
     html1 = 'data:image/png;base64,{}'.format(encoded)
     os.remove('static/plotcountry1{}.png'.format(countrycode))
 
+    fig, ax = plt.subplots(figsize=(9.5, 6))
+
+    male=10
+    female=10
+    ax.pie([male,female], labels=['male', 'female'], autopct='%1.1f%%', shadow=True, startangle=90)
+    plt.savefig('myfig.png', transparent = True)
+    encoded = base64.b64encode(open('myfig.png', 'rb').read()).decode()
+    html2 = 'data:image/png;base64,{}'.format(encoded)
+    os.remove('myfig.png')
+
+
     url = 'http://data.un.org/en/iso/{}.html'.format(countrycode)
     countryData = requests.get(url).text
-    soup = BeautifulSoup(countryData, 'lxml')
+    soup = BeautifulSoup(countryData)
     tables = soup.find_all("tbody")
     lists, i = [[], []], 1
     for tag in tables[1].find_all('td'):
@@ -149,7 +225,7 @@ def country(countrycode):
             if i == 5:
                 i = 1
     attribute, value = lists[0], lists[1]
-    return render_template("countryinfo.html", cc=countrycode, country=country, attribute=attribute, value=value, length=len(attribute), htmlstring1=html1, htmlstring2=html1)
+    return render_template("countryinfo.html", cc=countrycode, country=country, attribute=attribute, value=value, length=len(attribute), htmlstring1=html1, htmlstring2=html1, htmlstring3=html2)
 
 @app.route('/map/<countrycode>')
 def map(countrycode):
@@ -173,12 +249,7 @@ def map(countrycode):
     g.addValue(["No_Degree_mau", "Graduated_mau", "High_School_mau"], " of the population do not have a degree")
     g.addValue(["Graduated_mau", "High_School_mau", "No_Degree_mau"], " of the population graduated from college")
     g.addValue(["High_School_mau", "Graduated_mau", "No_Degree_mau"], " of the population have a high school degree")
-
-    g.createPlots(["Male_mau", "Female_mau"], ['Men', 'Women'])
-    g.createPlots(["iOS_mau", "Android_mau", "Other_mau"], ["iOS", "Android", "Others"])
-    g.createPlots(["Graduated_mau", "High_School_mau", "No_Degree_mau"], ["Graduated", "High School", "No degree"])
-
-    g.addInfoBox()
+    g.addInfoBox(countrycode)
    
     g = plotmap.Geojson(bmap, 'Gender', 'Male', locationcol='citizenship')
     g.colorMap(column1='Male_mau')
@@ -196,11 +267,7 @@ def map(countrycode):
     g.addValue(["Graduated_mau", "High_School_mau", "No_Degree_mau"], " of the population graduated from college")
     g.addValue(["High_School_mau", "Graduated_mau", "No_Degree_mau"], " of the population have a high school degree")
 
-    g.createPlots(["Male_mau", "Female_mau"], ['Men', 'Women'])
-    g.createPlots(["iOS_mau", "Android_mau", "Other_mau"], ["iOS", "Android", "Others"])
-    g.createPlots(["Graduated_mau", "High_School_mau", "No_Degree_mau"], ["Graduated", "High School", "No degree"])
-
-    g.addInfoBox()
+    g.addInfoBox(countrycode)
 
     g = plotmap.Geojson(bmap, 'Gender', 'Female', locationcol='citizenship')
     g.colorMap(column1='Female_mau')
@@ -218,11 +285,7 @@ def map(countrycode):
     g.addValue(["Graduated_mau", "High_School_mau", "No_Degree_mau"], " of the population graduated from college")
     g.addValue(["High_School_mau", "Graduated_mau", "No_Degree_mau"], " of the population have a high school degree")
 
-    g.createPlots(["Male_mau", "Female_mau"], ['Men', 'Women'])
-    g.createPlots(["iOS_mau", "Android_mau", "Other_mau"], ["iOS", "Android", "Others"])
-    g.createPlots(["Graduated_mau", "High_School_mau", "No_Degree_mau"], ["Graduated", "High School", "No degree"])
-
-    g.addInfoBox()
+    g.addInfoBox(countrycode)
 
     '''bmap.createGroup('Facts')
     f= plotmap.interestingFacts(bmap, 'Facts', 'interesting fact', 'citizenship')
