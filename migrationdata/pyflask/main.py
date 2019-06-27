@@ -88,6 +88,8 @@ def plotgraph():
         fig, ax = plt.subplots(figsize=(9.5, 6))
         ax.set_xlabel('', labelpad=15)
         ax.set_ylabel('', labelpad=30)
+        ax.set_yticks([])
+        ax.set_xticks([0])
         plt.savefig('static/plot.png', transparent=True)
         plt.close()
         encoded = base64.b64encode(open('static/plot.png', 'rb').read()).decode()
