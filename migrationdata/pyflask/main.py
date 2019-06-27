@@ -84,9 +84,7 @@ def plotgraph():
     tempdf = tempdf[~tempdf["citizenship"].isin(["Locals", "All ", "All"])]
     tempdf = tempdf[tempdf["mau_audience"] > 1000]
 
-    fig, ax = plt.subplots(figsize=(9.5, 6))
     if tempdf.empty:
-        # ToDo: have an empty plot to load in this case.
         fig, ax = plt.subplots(figsize=(9.5, 6))
         ax.set_xlabel('', labelpad=15)
         ax.set_ylabel('', labelpad=30)
@@ -95,10 +93,10 @@ def plotgraph():
         encoded = base64.b64encode(open('static/plot.png', 'rb').read()).decode()
         plothtml = 'data:image/png;base64,{}'
         plothtml = plothtml.format(encoded)
-        # plothtml = '<img src="static/empty.png" style="width: auto; height: 400px" title="Empty" alt="">'
+
     else:
-        tempdf.set_index('citizenship').sort_values('mau_audience', ascending=False).head(10)[::-1]['mau_audience'].plot(kind='barh')
         fig, ax = plt.subplots(figsize=(9.5, 6))
+        tempdf.set_index('citizenship').sort_values('mau_audience', ascending=False).head(10)[::-1]['mau_audience'].plot(kind='barh')
         ax.set_xlabel('', labelpad=15)
         ax.set_ylabel('', labelpad=30)
         plt.savefig('static/plot.png', transparent=True)
@@ -106,7 +104,6 @@ def plotgraph():
         encoded = base64.b64encode(open('static/plot.png', 'rb').read()).decode()
         plothtml = 'data:image/png;base64,{}'
         plothtml = plothtml.format(encoded)
-        # os.remove('static/plot.png')
 
     return render_template('plotgraph.html', plot=plothtml, gender=gender, scholarities=scholarities, os=os_var)
 
