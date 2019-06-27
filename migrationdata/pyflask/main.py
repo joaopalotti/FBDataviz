@@ -110,24 +110,47 @@ def plotgraph():
 
     return render_template('plotgraph.html', plot=plothtml, gender=gender, scholarities=scholarities, os=os_var)
 
-
+def donutpie(group_names, group_size, subgroup_names, subgroup_size, color, subcolor):
+    # a, b, c = [plt.cm.Blues, plt.cm.Reds, plt.cm.Greens]
+    fig, ax = plt.subplots()
+    ax.axis('equal')
+    mypie, _ = ax.pie(group_size, radius=1.3, labels=group_names, colors=color)
+    plt.setp(mypie, width=0.3, edgecolor='white')
+    mypie2, _ = ax.pie(subgroup_size, radius=1.3 - 0.3, labels=subgroup_names, labeldistance=0.7,
+                       colors=subcolor)
+    plt.setp(mypie2, width=0.4, edgecolor='white')
+    plt.margins(0, 0)
+    plt.savefig('static/myfig.png', transparent=True)
+    plt.close()
+    encoded = base64.b64encode(open('static/myfig.png', 'rb').read()).decode()
+    piehtml = 'data:image/png;base64,{}'
+    piehtml = piehtml.format(encoded)
+    return piehtml
 @app.route('/explore')
 def explore():
     countrycode = request.args.get('cc')
     path = glob('static/simplified/{}.csv.gz'.format(countrycode))[0]
     df = pd.read_csv(path)
     df = df.set_index('citizenship')
-    array = ["Male_mau", "Female_mau"]
-    labels = ('Male', 'Female')
-    fig1, ax1 = plt.subplots(figsize=(3, 2))
-    ax1.pie([df.loc['All', 'Male_mau'], df.loc['All', 'Female_mau']], labels=labels, autopct='%1.1f%%', shadow=True,startangle=90)
-    plt.savefig('static/myfig.png', transparent=True)
-    plt.close()
-    encoded = base64.b64encode(open('static/myfig.png', 'rb').read()).decode()
-    piehtml = 'data:image/png;base64,{}'
-    piehtml = piehtml.format(encoded)
+    a, b, c, d = [plt.cm.Blues, plt.cm.Reds, plt.cm.Greens, plt.cm.Oranges]
+    pie1 = donutpie(['Locals', 'All Expats'], [df.loc['Locals', 'Total_mau'], df.loc['All', 'Total_mau']],
+                    ['Male', 'Female', 'Male', 'Female'],
+                    [df.loc['Locals', 'Male_mau'], df.loc['Locals', 'Female_mau'], df.loc['All', 'Male_mau'], df.loc['All', 'Female_mau']],
+                    [a(0.6), b(0.6)], [a(0.5), a(0.4), b(0.5), b(0.4)])
 
-    return render_template("explore.html", pie1=piehtml)
+    pie2 = donutpie(['Locals', 'All Expats'], [df.loc['Locals', 'Total_mau'], df.loc['All', 'Total_mau']],
+                    ['iOS', 'Anroid', 'Others', 'iOS', 'Android', 'Others'],
+                    [df.loc['Locals', 'iOS_mau'], df.loc['Locals', 'Android_mau'], df.loc['Locals', 'Other_mau'], df.loc['All', 'iOS_mau'],
+                     df.loc['All', 'Android_mau'], df.loc['All', 'Other_mau']],
+                    [c(0.6), a(0.6)], [c(0.5), c(0.4), c(0.2), a(0.5), a(0.4),a(0.2)])
+
+    pie3 = donutpie(['Locals', 'All Expats'], [df.loc['Locals', 'Total_mau'], df.loc['All', 'Total_mau']],
+                    ['Graduated', 'High School', 'No Degree', 'Graduated', 'High School', 'No Degree'],
+                    [df.loc['Locals', 'Graduated_mau'], df.loc['Locals', 'High_School_mau'], df.loc['Locals', 'No_Degree_mau'],
+                     df.loc['All', 'Graduated_mau'],df.loc['All', 'High_School_mau'], df.loc['All', 'No_Degree_mau']],
+                    [d(0.6), c(0.6)], [d(0.5), d(0.4), d(0.2), c(0.5), c(0.4), c(0.2)])
+#["No_Degree_mau", "Graduated_mau", "High_School_mau"]
+    return render_template("explore.html", pie1=pie1, pie2=pie2, pie3=pie3)
 
 
 #Using this function to remove the characters in the end
