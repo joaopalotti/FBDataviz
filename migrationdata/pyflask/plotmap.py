@@ -4,7 +4,6 @@ import folium
 import branca
 import json
 from branca.element import MacroElement
-from branca.colormap import  LinearColormap
 from jinja2 import Template
 import matplotlib.pyplot as plt
 
@@ -155,7 +154,7 @@ class Geojson():
         self.baseMap.feature_groups[self.feature_group][self.name] = folium.map.FeatureGroup(name=name, show=False).add_to(self.baseMap.map)
 
     
-    def colorMap(self,column1, column2 = None):
+    def colorMap(self,column1):
         template = """
 {% macro html(this, kwargs) %}
 
@@ -490,3 +489,4 @@ class InterestingFacts():
             self.pdict[l] += ' has the'+string+'</p></center><center><img align="middle" src="data:image/png;base64,{}"></center>'
             iframe = branca.element.IFrame(html=self.pdict[l].format(*self.pidict[l]), width=400, height = 220 + self.cdict[l]* 50)
             folium.Marker([latlong.split(",")[0], latlong.split(",")[1]], popup = folium.Popup(iframe), icon = folium.features.CustomIcon(ic,icon_size=(28, 30)),tooltip=self.hdict[l].format(*self.tdict[l]) ).add_to(self.basemap.feature_groups[self.feature_group][self.name])
+
