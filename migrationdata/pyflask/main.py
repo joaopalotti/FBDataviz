@@ -172,15 +172,16 @@ def plotpie():
         
 
     piehtml = 'data:image/png;base64,{}'
-    piehtml = pietml.format(encoded)
+    piehtml = piehtml.format(encoded)
     os.remove('myfig.png')
 
     return render_template('plotpie.html', pie=piehtml, location=location, category=category)
 #
 def donutpie(group_names, group_size, subgroup_names, subgroup_size, color, subcolor):
     # a, b, c = [plt.cm.Blues, plt.cm.Reds, plt.cm.Greens]
-    fig, ax = plt.subplots()
-    ax.axis('equal')
+    fig, ax = plt.subplots(figsize=(3.2, 3.2))
+    # plt.rcParams.update({'font.size': 20})
+    # ax.axis('equal')
     mypie, _ = ax.pie(group_size, radius=1.3, labels=group_names, colors=color)
     plt.setp(mypie, width=0.3, edgecolor='white')
     mypie2, _ = ax.pie(subgroup_size, radius=1.3 - 0.3, labels=subgroup_names, labeldistance=0.7,
@@ -192,7 +193,10 @@ def donutpie(group_names, group_size, subgroup_names, subgroup_size, color, subc
     encoded = base64.b64encode(open('static/myfig.png', 'rb').read()).decode()
     piehtml = 'data:image/png;base64,{}'
     piehtml = piehtml.format(encoded)
+    #@fangjio, there was a typo here
     return piehtml
+
+
 @app.route('/explore')
 def explore():
     countrycode = request.args.get('cc')
@@ -230,14 +234,15 @@ def explore():
     r = [i for i in range(len(mdf.index.values))]
     names = mdf.index.values
     barWidth = 0.7
-    plt.bar(r, bars1, color='#959ca6', edgecolor='white', width=barWidth)
-    plt.bar(r, bars2, bottom=bars1, color='#557f2d', edgecolor='white', width=barWidth)
+    plt.bar(r, bars2, color='#bfd96a', edgecolor='white', width=barWidth, label='Male')
+    plt.bar(r, bars1, bottom=bars2, color='#3c4d4d', edgecolor='white', width=barWidth, label='Female')
     # Custom X axis
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     # ax.spines['bottom'].set_visible(False)
     plt.xticks(r, names, fontweight='bold')
     # plt.xlabel("")
+    plt.legend()
     plt.savefig('static/myfig.png', transparent=True)
     plt.close()
     encoded = base64.b64encode(open('static/myfig.png', 'rb').read()).decode()
