@@ -193,7 +193,6 @@ def donutpie(group_names, group_size, subgroup_names, subgroup_size, color, subc
     encoded = base64.b64encode(open('static/myfig.png', 'rb').read()).decode()
     piehtml = 'data:image/png;base64,{}'
     piehtml = piehtml.format(encoded)
-    #@fangjio, there was a typo here
     return piehtml
 
 
