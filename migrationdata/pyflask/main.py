@@ -168,7 +168,8 @@ def plotpie():
 
     piehtml = 'data:image/png;base64,{}'
     piehtml = pietml.format(encoded)
-    os.remove('myfig.png')
+    plt.close()
+    #os.remove('myfig.png')
 
     return render_template('plotpie.html', pie=piehtml, location=location, category=category)
 #
@@ -247,6 +248,7 @@ def country(countrycode):
     female=10
     ax.pie([male,female], labels=['male', 'female'], autopct='%1.1f%%', shadow=True, startangle=90)
     plt.savefig('myfig.png', transparent = True)
+    plt.close()
     encoded = base64.b64encode(open('myfig.png', 'rb').read()).decode()
     html2 = 'data:image/png;base64,{}'.format(encoded)
     os.remove('myfig.png')
