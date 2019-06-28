@@ -124,7 +124,7 @@ class Geojson():
 
     """
 
-    def __init__(self, baseMap, feature_group, name, data = None, shapefile = None, locationcol = 'Location', total = None):
+    def __init__(self, baseMap, feature_group, name, country, data = None, shapefile = None, locationcol = 'Location', total = None):
         self.baseMap = baseMap
         self.name = name
         self.vdict, self.vdict2 = {}, {}
@@ -138,6 +138,7 @@ class Geojson():
         self.key = 'name'
         self.feature_group = feature_group
         self.total_number = total
+        self.country = country
 
         # Gets Facebook data
         if data is None and self.baseMap is not None:
@@ -193,11 +194,13 @@ class Geojson():
 <div class='legend-title'>Migrants From Each Country</div>
 <div class='legend-scale'>
   <ul class='legend-labels'>
+    <li><span style='background:#808080;opacity:1;'></span>not enough data</li>
     <li><span style='background:#0392cf;opacity:1;'></span>1,001 to 10,001</li>
     <li><span style='background:#7bc043;opacity:1;'></span>10,001 to 20,001</li>
     <li><span style='background:#fdf498 ;opacity:1;'></span>20,001 to 50,001</li>
     <li><span style='background:#f37736;opacity:1;'></span>50,001 to 100,001</li>
     <li><span style='background:#ee4035;opacity:1;'></span> > 100,001</li>
+    <li><span style='background:#000000;opacity:1;'></span>""" + self.country + """</li>
 
   </ul>
 </div>
@@ -259,6 +262,7 @@ class Geojson():
         folium.GeoJson(self.geodata, 
                        style_function=lambda feature: {
                          'fillColor': 'grey' if feature['properties'][self.key] not in self.vdict
+                         else 'black' if feature['properties'][self.key] == self.country
                         else 'grey' if self.vdict[feature['properties'][self.key]]<1001
                         else '#0392cf' if self.vdict[feature['properties'][self.key]]<10001
                         else '#7bc043' if self.vdict[feature['properties'][self.key]]<20001

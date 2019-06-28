@@ -327,10 +327,11 @@ def country(countrycode):
 def map(countrycode):
     path = glob('./static/simplified/{}.csv.gz'.format(countrycode))[0]
     df = pd.read_csv(path)
+    country = mapping.convert_country_code(countrycode)
 
     bmap = plotmap.BaseMap(data=df, shapefile='../places.geojson')
     bmap.createGroup('Gender')
-    g = plotmap.Geojson(bmap, 'Gender', 'Total', locationcol='citizenship')
+    g = plotmap.Geojson(bmap, 'Gender', 'Total', country, locationcol='citizenship')
     g.colorMap(column1='Total_mau')
     g.createMap(key='name')
 
@@ -347,7 +348,7 @@ def map(countrycode):
 
     g.addInfoBox(countrycode)
 
-    g = plotmap.Geojson(bmap, 'Gender', 'Male', locationcol='citizenship')
+    g = plotmap.Geojson(bmap, 'Gender', 'Male', country, locationcol='citizenship')
     g.colorMap(column1='Male_mau')
     #g.colorMap(column1='Male_mau', threshold_min1=1001)
     g.createMap(key='name')
@@ -365,7 +366,7 @@ def map(countrycode):
 
     g.addInfoBox(countrycode)
 
-    g = plotmap.Geojson(bmap, 'Gender', 'Female', locationcol='citizenship')
+    g = plotmap.Geojson(bmap, 'Gender', 'Female', country,  locationcol='citizenship')
     g.colorMap(column1='Female_mau')
     #g.colorMap(column1='Female_dau', threshold_min1=1001)
     g.createMap(key='name')
