@@ -231,20 +231,18 @@ def explore():
     mdf = maindf[maindf['citizenship'].apply(lambda x: x not in set(['All', 'Locals']))]
     mdf = mdf[mdf['Total_mau'] > 1000].sort_values('Total_mau', ascending=False).set_index('citizenship').head(10)
     # bars1 = [df.loc['Locals', 'Male_mau'], df.loc['All', 'Male_mau']]
-    bars1 = [ mdf.loc[i, 'Male_mau'] for i in mdf.index.values ]
-    bars2 = [mdf.loc[i, 'Female_mau'] for i in mdf.index.values ]
-    # Heights of bars1 + bars2
-    # bars = np.add(bars1, bars2).tolist()
+    bars2 = [ mdf.loc[i, 'Male_mau'] for i in mdf.index.values ]
+    bars1 = [mdf.loc[i, 'Female_mau'] for i in mdf.index.values ]
     r = [i for i in range(len(mdf.index.values))]
     names = mdf.index.values
     barWidth = 0.7
-    plt.bar(r, bars2, color='#bfd96a', edgecolor='white', width=barWidth, label='Male')
-    plt.bar(r, bars1, bottom=bars2, color='#3c4d4d', edgecolor='white', width=barWidth, label='Female')
+    plt.bar(r, bars1, color='#bfd96a', edgecolor='white', width=barWidth, label='Female')
+    plt.bar(r, bars2, bottom=bars1, color='#3c4d4d', edgecolor='white', width=barWidth, label='Male')
     # Custom X axis
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     # ax.spines['bottom'].set_visible(False)
-    plt.xticks(r, names, fontweight='bold')
+    plt.xticks(r, names, fontweight='bold', rotation=40)
     # plt.xlabel("")
     plt.legend()
     plt.savefig('static/myfig.png', transparent=True)
@@ -274,6 +272,7 @@ def country(countrycode):
                 palette=sns.color_palette("GnBu_d"))
 
     ax.set_xlabel('', labelpad=15)
+    plt.xticks(rotation=40)
     ax.set_ylabel('', labelpad=30)
 
     # ax.axis('off')
@@ -301,7 +300,7 @@ def country(countrycode):
 
     url = 'http://data.un.org/en/iso/{}.html'.format(countrycode)
     countryData = requests.get(url).text
-    soup = BeautifulSoup(countryData)
+    soup = BeautifulSoup(countryData, 'lxml')
     tables = soup.find_all("tbody")
     lists, i = [[], []], 1
     for tag in tables[1].find_all('td'):
@@ -334,12 +333,12 @@ def country(countrycode):
 def map(countrycode):
     path = glob('./static/simplified/{}.csv.gz'.format(countrycode))[0]
     df = pd.read_csv(path)
+    country = mapping.convert_country_code(countrycode)
 
     bmap = plotmap.BaseMap(data=df, shapefile='../places.geojson')
     bmap.createGroup('Gender')
-    g = plotmap.Geojson(bmap, 'Gender', 'Total', locationcol='citizenship')
+    g = plotmap.Geojson(bmap, 'Gender', 'Total', country, locationcol='citizenship')
     g.colorMap(column1='Total_mau')
-    #g.colorMap(column1='Total_mau', threshold_min1=1001)
     g.createMap(key='name')
 
     g.addValue(["Male_mau", "Female_mau"], " of the population are males")
@@ -355,7 +354,7 @@ def map(countrycode):
 
     g.addInfoBox(countrycode)
 
-    g = plotmap.Geojson(bmap, 'Gender', 'Male', locationcol='citizenship')
+    g = plotmap.Geojson(bmap, 'Gender', 'Male', country, locationcol='citizenship')
     g.colorMap(column1='Male_mau')
     #g.colorMap(column1='Male_mau', threshold_min1=1001)
     g.createMap(key='name')
@@ -373,7 +372,7 @@ def map(countrycode):
 
     g.addInfoBox(countrycode)
 
-    g = plotmap.Geojson(bmap, 'Gender', 'Female', locationcol='citizenship')
+    g = plotmap.Geojson(bmap, 'Gender', 'Female', country,  locationcol='citizenship')
     g.colorMap(column1='Female_mau')
     #g.colorMap(column1='Female_dau', threshold_min1=1001)
     g.createMap(key='name')

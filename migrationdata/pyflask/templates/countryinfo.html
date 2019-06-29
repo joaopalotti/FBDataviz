@@ -111,22 +111,23 @@ $("#explore").click(function(){
 });
 </script>
 
-<div class="bluecontainer">
+<!--<div class="bluecontainer"> -->
     <div class="container">
         <div class="row">
             <div class="col-lg-5">
-                <center>
-                    <!--<p style="font-size:24px;">Plot a graph</p>-->
-                </center>
-                    <!--<img style="width: auto; height: 400px; align: 'center'" src="{{ url_for('static', filename='plotcountry'+cc+'-form.png') }}" alt="Try again">
-                    <img style="width: auto; height: 400px; align: 'center'" src="{{ plot }}" alt="Try again"> -->
                     <div id="plot">
-                    <img style="width: auto; height: 400px;" src={{ htmlstring2 }}>
-                        <div class="border" style="margin-left:5%; padding-left:5%; width:auto; align:left; text-align:left;">
-                            <div style="font-size:18px;">Gender: Both</div>
-                            <div style="font-size:18px;">Scholarities: All</div>
-                            <div style="font-size:18px;">OS: All</div>
-                        </div>
+                    <img style="width: auto; height: 400px;" src={{ htmlstring2 }}><center>
+                        <!--<div style="font-size:18px;"><b>|</b> Gender: Both <b>|</b> Scholarities: All <b>|</b> OS: All <b>|</b></div></center>
+                        <div class="container" style="padding:5%;">
+                            <div style="margin-left:5%; padding-left:5%; width:auto; align:left; text-align:left;">
+                                <div style="font-size:18px;">Gender: Both</div>
+                                <div style="font-size:18px;">Scholarities: All</div>
+                                <div style="font-size:18px;">OS: All</div>
+                            </div>
+                        </div> --><!--
+                    <center><br>
+                        <div style="font-size:18px;"> Gender: Both <b>|</b> Scholarities: All <b>|</b> OS: All</div></center>
+                    </center>-->
                     </div>
             </div>
             <div class="col-lg-2">
@@ -186,9 +187,13 @@ $("#explore").click(function(){
             </div>
         </div>
     </div>
-</div>
 
-
+    <br>
+    <center>
+        <div id="plottext">
+                <div style="font-size:18px;"> Gender: Both <b>|</b> Scholarities: All <b>|</b> OS: All</div></center>
+        </div>
+    </center>
     <br>
     <br>
 
@@ -205,6 +210,7 @@ $("#plotbtn").click(function(){
       data: {gender: gender, scholarities: scholarities, os: os_var, cc: '{{cc}}' },
       success: function(response) {
         $("#plot").html(response);
+        $("#plottext").html('<div style="font-size:18px;"> Gender: ' +gender+ ' <b>|</b> Scholarities: '+scholarities+' <b>|</b> OS: '+os_var+' </div>');
       },
       error: function(xhr) {
         //Do Something to handle error
