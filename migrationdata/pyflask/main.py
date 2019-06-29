@@ -383,13 +383,14 @@ def map(countrycode):
     g.addValue(["High_School_mau", "Graduated_mau", "No_Degree_mau"], " of the population have a high school degree")
 
     g.addInfoBox(countrycode)
+    bmap.groupedLayerControl(['Gender'])
 
     '''bmap.createGroup('Facts')
     f= plotmap.interestingFacts(bmap, 'Facts', 'interesting fact', 'citizenship')
     f.addFacts(['Total_mau', 'Other_mau', 'iOS_mau', 'Android_mau'], ('Other', 'iOS', 'Android'),'trophy.png', 'phone.png')
 
     bmap.groupedLayerControl(['Gender','Facts'])'''
-    folium.LayerControl().add_to(bmap.map)
+    # folium.LayerControl().add_to(bmap.map)
     # bmap.map = mapnavbar.addNavBar(bmap.map)
     mapnavbar.FloatImage().add_to(bmap.map)
     # bmap.map.save(os.path.join('results', 'FloatImage.html'))

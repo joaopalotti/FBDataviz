@@ -6,6 +6,7 @@ import json
 from branca.element import MacroElement
 from jinja2 import Template
 import matplotlib.pyplot as plt
+from grouped_layer_control import GroupedLayerControl
 
 class BindColormap(MacroElement):
     def __init__(self, layer, colormap):
@@ -77,7 +78,7 @@ class BaseMap():
         for i in self.feature_groups.keys():
             if i in radio:
                 self.feature_groups[i]['None'] = folium.map.FeatureGroup(name='None', show=False).add_to(self.map)
-        folium.plugins.GroupedLayerControl({}, self.feature_groups, radio).add_to(self.map)
+        GroupedLayerControl({}, self.feature_groups, radio).add_to(self.map)
 
     def getMap(self):
         """Returns a folium map object.
