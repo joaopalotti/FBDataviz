@@ -4,7 +4,6 @@ import folium
 import branca
 import json
 from branca.element import MacroElement
-from branca.colormap import  LinearColormap
 from jinja2 import Template
 import matplotlib.pyplot as plt
 
@@ -155,7 +154,7 @@ class Geojson():
         self.baseMap.feature_groups[self.feature_group][self.name] = folium.map.FeatureGroup(name=name, show=False).add_to(self.baseMap.map)
 
     
-    def colorMap(self,column1, column2 = None):
+    def colorMap(self,column1):
         template = """
 {% macro html(this, kwargs) %}
 
@@ -190,15 +189,15 @@ class Geojson():
 <div id='maplegend' class='maplegend' 
     style='position: absolute; z-index:9999; border:2px solid grey; background-color:rgba(255, 255, 255, 0.8);
      border-radius:6px; padding: 10px; font-size:14px; right: 20px; bottom: 20px;'>
-     
-<div class='legend-title'>Migrants from each country</div>
+
+<div class='legend-title'>Migrants From Each Country</div>
 <div class='legend-scale'>
   <ul class='legend-labels'>
     <li><span style='background:#0392cf;opacity:1;'></span>1,001 to 10,001</li>
-    <li><span style='background:#7bc043;opacity:1;'></span>1,0001 to 20,001</li>
+    <li><span style='background:#7bc043;opacity:1;'></span>10,001 to 20,001</li>
     <li><span style='background:#fdf498 ;opacity:1;'></span>20,001 to 50,001</li>
     <li><span style='background:#f37736;opacity:1;'></span>50,001 to 100,001</li>
-    <li><span style='background:#ee4035;opacity:1;'></span>greater than 100,001</li>
+    <li><span style='background:#ee4035;opacity:1;'></span> > 100,001</li>
 
   </ul>
 </div>
@@ -500,3 +499,4 @@ class InterestingFacts():
             self.pdict[l] += ' has the'+string+'</p></center><center><img align="middle" src="data:image/png;base64,{}"></center>'
             iframe = branca.element.IFrame(html=self.pdict[l].format(*self.pidict[l]), width=400, height = 220 + self.cdict[l]* 50)
             folium.Marker([latlong.split(",")[0], latlong.split(",")[1]], popup = folium.Popup(iframe), icon = folium.features.CustomIcon(ic,icon_size=(28, 30)),tooltip=self.hdict[l].format(*self.tdict[l]) ).add_to(self.basemap.feature_groups[self.feature_group][self.name])
+

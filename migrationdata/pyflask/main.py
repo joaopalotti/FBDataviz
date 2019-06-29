@@ -9,7 +9,10 @@ import base64
 import matplotlib
 matplotlib.use("Agg")
 from matplotlib import pyplot as plt
+from matplotlib import rc
 from bs4 import BeautifulSoup
+import seaborn as sns
+
 
 # My functions
 import plotmap
@@ -88,6 +91,8 @@ def plotgraph():
         fig, ax = plt.subplots(figsize=(9.5, 6))
         ax.set_xlabel('', labelpad=15)
         ax.set_ylabel('', labelpad=30)
+        ax.set_yticks([])
+        ax.set_xticks([0])
         plt.savefig('static/plot.png', transparent=True)
         plt.close()
         encoded = base64.b64encode(open('static/plot.png', 'rb').read()).decode()
@@ -167,16 +172,21 @@ def plotpie():
         
 
     piehtml = 'data:image/png;base64,{}'
-    piehtml = pietml.format(encoded)
-    plt.close()
+
+    # piehtml = pietml.format(encoded)
+    # plt.close()
     #os.remove('myfig.png')
 
+    piehtml = piehtml.format(encoded)
+    os.remove('myfig.png')
+
     return render_template('plotpie.html', pie=piehtml, location=location, category=category)
-#
+
 def donutpie(group_names, group_size, subgroup_names, subgroup_size, color, subcolor):
     # a, b, c = [plt.cm.Blues, plt.cm.Reds, plt.cm.Greens]
-    fig, ax = plt.subplots()
-    ax.axis('equal')
+    fig, ax = plt.subplots(figsize=(3.2, 3.2))
+    # plt.rcParams.update({'font.size': 20})
+    # ax.axis('equal')
     mypie, _ = ax.pie(group_size, radius=1.3, labels=group_names, colors=color)
     plt.setp(mypie, width=0.3, edgecolor='white')
     mypie2, _ = ax.pie(subgroup_size, radius=1.3 - 0.3, labels=subgroup_names, labeldistance=0.7,
@@ -190,12 +200,14 @@ def donutpie(group_names, group_size, subgroup_names, subgroup_size, color, subc
     piehtml = piehtml.format(encoded)
     return piehtml
 
+
 @app.route('/explore')
 def explore():
     countrycode = request.args.get('cc')
+    country = request.args.get('country')
     path = glob('static/simplified/{}.csv.gz'.format(countrycode))[0]
-    df = pd.read_csv(path)
-    df = df.set_index('citizenship')
+    maindf = pd.read_csv(path)
+    df = maindf.set_index('citizenship')
     a, b, c, d = [plt.cm.Blues, plt.cm.Reds, plt.cm.Greens, plt.cm.Oranges]
     pie1 = donutpie(['Locals', 'All Expats'], [df.loc['Locals', 'Total_mau'], df.loc['All', 'Total_mau']],
                     ['Male', 'Female', 'Male', 'Female'],
@@ -213,8 +225,34 @@ def explore():
                     [df.loc['Locals', 'Graduated_mau'], df.loc['Locals', 'High_School_mau'], df.loc['Locals', 'No_Degree_mau'],
                      df.loc['All', 'Graduated_mau'],df.loc['All', 'High_School_mau'], df.loc['All', 'No_Degree_mau']],
                     [d(0.6), c(0.6)], [d(0.5), d(0.4), d(0.2), c(0.5), c(0.4), c(0.2)])
-#["No_Degree_mau", "Graduated_mau", "High_School_mau"]
-    return render_template("explore.html", pie1=pie1, pie2=pie2, pie3=pie3)
+    #stacked barplot
+    fig, ax = plt.subplots(figsize=(12, 7))
+    rc('font', weight='bold')
+    mdf = maindf[maindf['citizenship'].apply(lambda x: x not in set(['All', 'Locals']))]
+    mdf = mdf[mdf['Total_mau'] > 1000].sort_values('Total_mau', ascending=False).set_index('citizenship').head(10)
+    # bars1 = [df.loc['Locals', 'Male_mau'], df.loc['All', 'Male_mau']]
+    bars1 = [ mdf.loc[i, 'Male_mau'] for i in mdf.index.values ]
+    bars2 = [mdf.loc[i, 'Female_mau'] for i in mdf.index.values ]
+    # Heights of bars1 + bars2
+    # bars = np.add(bars1, bars2).tolist()
+    r = [i for i in range(len(mdf.index.values))]
+    names = mdf.index.values
+    barWidth = 0.7
+    plt.bar(r, bars2, color='#bfd96a', edgecolor='white', width=barWidth, label='Male')
+    plt.bar(r, bars1, bottom=bars2, color='#3c4d4d', edgecolor='white', width=barWidth, label='Female')
+    # Custom X axis
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    # ax.spines['bottom'].set_visible(False)
+    plt.xticks(r, names, fontweight='bold')
+    # plt.xlabel("")
+    plt.legend()
+    plt.savefig('static/myfig.png', transparent=True)
+    plt.close()
+    encoded = base64.b64encode(open('static/myfig.png', 'rb').read()).decode()
+    barhtml = 'data:image/png;base64,{}'
+    barhtml = barhtml.format(encoded)
+    return render_template("explore.html", country=country, pie1=pie1, pie2=pie2, pie3=pie3, bar1=barhtml)
 
 
 #Using this function to remove the characters in the end
@@ -230,12 +268,19 @@ def country(countrycode):
 
     df = pd.read_csv(path)
     df = df[df['citizenship'].apply(lambda x: x not in set(['All', 'Locals']))]
-    fig, ax = plt.subplots(figsize=(9.5, 6))
-    df[df['Total_mau']>1000].set_index('citizenship').sort_values('Total_mau', ascending=False).head(10)['Total_mau'][::-1].plot(kind='barh')
+    fig, ax = plt.subplots(figsize=(10, 7))
+    # df[df['Total_mau']>1000].set_index('citizenship').sort_values('Total_mau', ascending=False).head(10)['Total_mau'][::-1].plot(kind='barh')
+    sns.barplot(x='citizenship', y='Total_mau', data=df[df['Total_mau']>1000].sort_values('Total_mau', ascending=False).head(10),
+                palette=sns.color_palette("GnBu_d"))
 
     ax.set_xlabel('', labelpad=15)
     ax.set_ylabel('', labelpad=30)
 
+    # ax.axis('off')
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    # ax.spines['left'].set_visible(False)
     plt.savefig('static/plotcountry1{}.png'.format(countrycode), transparent=True)
     plt.close()
     encoded = base64.b64encode(open('static/plotcountry1{}.png'.format(countrycode), 'rb').read()).decode()
