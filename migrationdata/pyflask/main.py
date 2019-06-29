@@ -329,6 +329,11 @@ def country(countrycode):
     attribute, value = lists[0], lists[1]
     return render_template("countryinfo.html", cc=countrycode, country=country, attribute=attribute, value=value, length=len(attribute), htmlstring1=html1, htmlstring2=html1, htmlstring3=html2)
 
+
+@app.route('/maps/<countrycode>')
+def maps(countrycode):
+    return render_template("maps/{}.html".format(countrycode))
+
 @app.route('/map/<countrycode>')
 def map(countrycode):
     path = glob('./static/simplified/{}.csv.gz'.format(countrycode))[0]

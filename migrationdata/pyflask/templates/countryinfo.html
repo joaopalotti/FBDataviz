@@ -83,17 +83,14 @@
             <div class="container" id="explorediv">
                  <br>
                 <center>
-                <a href={{ url_for('map', countrycode = cc )}} ><button type="button" class="btn btn-dark" style="width:300px;">View on Map</button> </a>
+                <a href={{ url_for('maps', countrycode = cc )}} ><button type="button" class="btn btn-dark" style="width:300px;">View on Map</button> </a>
                     <button type='button' id='explore' class="btn btn-primary btn-dark" style="align:right;width:300px;" >Explore</button>
                 </center>
             </div>
 
         </center>
     </div>
-<br><br><br><!--
-<div id="explorediv">
-</div> -->
-<!-- for explore -->
+<br><br><br>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script>
 $("#explore").click(function(){
