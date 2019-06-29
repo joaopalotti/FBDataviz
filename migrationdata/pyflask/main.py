@@ -101,15 +101,21 @@ def plotgraph():
 
     else:
         fig, ax = plt.subplots(figsize=(9.5, 6))
-        tempdf.set_index('citizenship').sort_values('mau_audience', ascending=False).head(10)[::-1]['mau_audience'].plot(kind='barh')
+        # tempdf.set_index('citizenship').sort_values('mau_audience', ascending=False).head(10)[::-1]['mau_audience'].plot(kind='barh')
+        sns.barplot(x='citizenship', y='mau_audience',
+                    data=tempdf[tempdf['mau_audience'] > 1000].sort_values('mau_audience', ascending=False).head(10),
+                    palette=sns.color_palette("YlGnBu"))
         ax.set_xlabel('', labelpad=15)
         ax.set_ylabel('', labelpad=30)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['bottom'].set_visible(False)
+        plt.xticks(rotation=40)
         plt.savefig('static/plot.png', transparent=True)
         plt.close()
         encoded = base64.b64encode(open('static/plot.png', 'rb').read()).decode()
         plothtml = 'data:image/png;base64,{}'
         plothtml = plothtml.format(encoded)
-
     return render_template('plotgraph.html', plot=plothtml, gender=gender, scholarities=scholarities, os=os_var)
 
 @app.route('/plotpie')
