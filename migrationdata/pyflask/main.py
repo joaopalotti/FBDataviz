@@ -13,7 +13,6 @@ from matplotlib import rc
 from bs4 import BeautifulSoup
 import seaborn as sns
 
-
 # My functions
 import plotmap
 import mapping
@@ -41,6 +40,7 @@ def plotgraph():
     scholarities = request.args.get('scholarities')
     os_var = request.args.get('os')
     countrycode = request.args.get('cc')
+    # relative = request.args.get('relative')
     path = glob('./static/original/%s_dataframe_collected_finished_*.csv.gz' % (countrycode))[0]
     maindf = pd.read_csv(path)
 
@@ -87,6 +87,9 @@ def plotgraph():
     tempdf = tempdf[~tempdf["citizenship"].isin(["Locals", "All ", "All"])]
     tempdf = tempdf[tempdf["mau_audience"] > 1000]
 
+    # if relative=='on':
+    #     tempdf[mau_audience]
+
     if tempdf.empty:
         fig, ax = plt.subplots(figsize=(9.5, 6))
         ax.set_xlabel('', labelpad=15)
@@ -111,11 +114,17 @@ def plotgraph():
         ax.spines['right'].set_visible(False)
         ax.spines['bottom'].set_visible(False)
         plt.xticks(rotation=40)
+        # image = io.StringIO()
+        # plt.savefig(image, transparent=True)
+        # fig = plt.figure()
+        # fig.canvas.draw()
         plt.savefig('static/plot.png', transparent=True)
+        # encoded = base64.b64encode(open(image, 'rb').read()).decode()
         plt.close()
         encoded = base64.b64encode(open('static/plot.png', 'rb').read()).decode()
         plothtml = 'data:image/png;base64,{}'
         plothtml = plothtml.format(encoded)
+
     return render_template('plotgraph.html', plot=plothtml, gender=gender, scholarities=scholarities, os=os_var)
 
 @app.route('/plotpie')
@@ -256,7 +265,7 @@ def explore():
     encoded = base64.b64encode(open('static/myfig.png', 'rb').read()).decode()
     barhtml = 'data:image/png;base64,{}'
     barhtml = barhtml.format(encoded)
-    return render_template("explore.html", country=country, pie1=pie1, pie2=pie2, pie3=pie3, bar1=barhtml)
+    return render_template("explore.html", country=country, pie1=pie1, pie2=pie2, pie3=pie3, bar1=barhtml, countrycode=countrycode)
 
 
 #Using this function to remove the characters in the end
