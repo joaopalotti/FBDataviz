@@ -59,7 +59,7 @@
                             <!--<img style="width: auto; height: 400px; align: 'center'" src="{{ url_for('static', filename='plotcountry'+cc+'.png') }}" alt="Try again">
                             <img style="width: auto; height: 400px; align: 'center'" src="{{ plot }}" alt="Try again"> -->
                             <center>
-                            <a href="#" data-toggle="modal" data-target="#bd-example-modal-lg2" title="Expat distribution in {{ country }}"><img style="width: 130%; height: auto; align: 'center';" src={{ htmlstring1 }}></a>
+                            <a href="#" data-toggle="modal" data-target="#bd-example-modal-lg2" title="Expat distribution in {{ country }}"><img style="width: 130%; height: 100%; align: 'center'; margin-top:-15px;" src={{ htmlstring1 }}></a>
                             </center>
                     </div>
                 </div>
@@ -113,7 +113,7 @@ $("#explore").click(function(){
         <div class="row">
             <div class="col-lg-5">
                     <div id="plot">
-                    <img style="width: auto; height: 400px;" src={{ htmlstring2 }}><center>
+                    <img style="width: auto; height: 400px; margin-top:-15px;" src={{ htmlstring2 }}><center>
                         <!--<div style="font-size:18px;"><b>|</b> Gender: Both <b>|</b> Scholarities: All <b>|</b> OS: All <b>|</b></div></center>
                         <div class="container" style="padding:5%;">
                             <div style="margin-left:5%; padding-left:5%; width:auto; align:left; text-align:left;">
@@ -121,10 +121,7 @@ $("#explore").click(function(){
                                 <div style="font-size:18px;">Scholarities: All</div>
                                 <div style="font-size:18px;">OS: All</div>
                             </div>
-                        </div> --><!--
-                    <center><br>
-                        <div style="font-size:18px;"> Gender: Both <b>|</b> Scholarities: All <b>|</b> OS: All</div></center>
-                    </center>-->
+                        </div> -->
                     </div>
             </div>
             <div class="col-lg-2">
@@ -160,7 +157,13 @@ $("#explore").click(function(){
                         </div>
                         <div class="radio">
                             <label><input type="radio" name="scholarities" value="all" checked="checked"> All</label>
-                        </div><br><br>
+                        </div><br>
+<!--
+                        <div class="custom-control custom-switch">
+                          <input type="checkbox" class="custom-control-input" id="customSwitch1">
+                          <label class="custom-control-label" for="customSwitch1">Relative</label>
+                        </div>-->
+                        <br>
                         <button type='button' id='plotbtn' class="btn btn-primary btn-dark" style="align:right;" >Plot</button>
                     </div>
                     <br>
@@ -179,6 +182,10 @@ $("#explore").click(function(){
                             <label><input type="radio" name="os" value="all" checked="checked"> All</label>
                         </div>
                         <br>
+                        <!--<div class="custom-control custom-switch" style="vertical-align:'center';">
+                          <input type="checkbox" class="custom-control-input" name="rel" id="relative">
+                          <label class="custom-control-label" for="relative">Relative</label>
+                        </div>-->
                     </div>
                 </div>
             </div>
@@ -204,7 +211,7 @@ $("#plotbtn").click(function(){
     $.ajax({
       url: "../../plotgraph",
       type: "get",
-      data: {gender: gender, scholarities: scholarities, os: os_var, cc: '{{cc}}' },
+      data: {gender: gender, scholarities: scholarities, os: os_var, cc: '{{cc}}'},
       success: function(response) {
         $("#plot").html(response);
         $("#plottext").html('<div style="font-size:18px;"> Gender: ' +gender+ ' <b>|</b> Scholarities: '+scholarities+' <b>|</b> OS: '+os_var+' </div>');

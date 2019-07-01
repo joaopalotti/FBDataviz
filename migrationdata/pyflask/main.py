@@ -103,13 +103,15 @@ def plotgraph():
         plothtml = plothtml.format(encoded)
 
     else:
-        fig, ax = plt.subplots(figsize=(9.5, 6))
-        # tempdf.set_index('citizenship').sort_values('mau_audience', ascending=False).head(10)[::-1]['mau_audience'].plot(kind='barh')
+        # fig, ax = plt.subplots(figsize=(9.5, 6))
+        fig, ax = plt.subplots(figsize=(12, 8.5))
+
         sns.barplot(x='citizenship', y='mau_audience',
                     data=tempdf[tempdf['mau_audience'] > 1000].sort_values('mau_audience', ascending=False).head(10),
                     palette=sns.color_palette("YlGnBu"))
         ax.set_xlabel('', labelpad=15)
-        ax.set_ylabel('', labelpad=30)
+        plt.xticks(rotation=30)
+        ax.set_ylabel('Monthly Active Users', labelpad=20, fontsize=16)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.spines['bottom'].set_visible(False)
@@ -242,7 +244,7 @@ def explore():
                     [d(0.6), c(0.6)], [d(0.5), d(0.4), d(0.2), c(0.5), c(0.4), c(0.2)])
     #stacked barplot
     fig, ax = plt.subplots(figsize=(12, 7))
-    rc('font', weight='bold')
+    # rc('font', weight='bold')
     mdf = maindf[maindf['citizenship'].apply(lambda x: x not in set(['All', 'Locals']))]
     mdf = mdf[mdf['Total_mau'] > 1000].sort_values('Total_mau', ascending=False).set_index('citizenship').head(10)
     # bars1 = [df.loc['Locals', 'Male_mau'], df.loc['All', 'Male_mau']]
@@ -282,14 +284,12 @@ def country(countrycode):
     df = pd.read_csv(path)
     df = df[df['citizenship'].apply(lambda x: x not in set(['All', 'Locals']))]
 
-    print(df[df['Total_mau']>1000].sort_values('Total_mau', ascending=False).head(10))
-    print(len(df[df['Total_mau']>1000].sort_values('Total_mau', ascending=False).head(10)))
-    print('dfdkjgfkjgbfkg')
-
     if df[df['Total_mau']>1000].empty:
-        fig, ax = plt.subplots(figsize=(9.5, 6))
-        ax.set_xlabel('Data insufficient', labelpad=15)
         rc('font', weight='bold')
+        fig, ax = plt.subplots(figsize=(9.5, 6))
+        # rc('font', weight='bold')
+        ax.set_xlabel('Data insufficient', labelpad=15)
+        # rc('font', weight='bold')
         # plt.rcParams.update({'font.size': 20})
         ax.set_ylabel('', labelpad=30)
         ax.set_yticks([])
@@ -300,12 +300,14 @@ def country(countrycode):
         html1 = 'data:image/png;base64,{}'
         html1 = html1.format(encoded)
     else:
-        fig, ax = plt.subplots(figsize=(10, 7))
+        rc('font', weight='bold')
+        fig, ax = plt.subplots(figsize=(12, 8.5))
+        # rc('font', weight='bold')
         sns.barplot(x='citizenship', y='Total_mau', data=df[df['Total_mau']>1000].sort_values('Total_mau', ascending=False).head(10),
                 palette=sns.color_palette("GnBu_d"))
         ax.set_xlabel('', labelpad=15)
-        plt.xticks(rotation=40)
-        ax.set_ylabel('', labelpad=30)
+        plt.xticks(rotation=30)
+        ax.set_ylabel('Monthly Active Users', labelpad=20, fontsize=16)
 
         # ax.axis('off')
         ax.spines['top'].set_visible(False)
