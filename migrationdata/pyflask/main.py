@@ -283,12 +283,8 @@ def country(countrycode):
     df = df[df['citizenship'].apply(lambda x: x not in set(['All', 'Locals']))]
 
     if df[df['Total_mau']>1000].empty:
-        # rc('font', weight='bold')
         fig, ax = plt.subplots(figsize=(9.5, 6))
-        # rc('font', weight='bold')
         ax.set_xlabel('Data insufficient', labelpad=15)
-        # rc('font', weight='bold')
-        # plt.rcParams.update({'font.size': 20})
         ax.set_ylabel('', labelpad=30)
         ax.set_yticks([])
         ax.set_xticks([0])
@@ -298,38 +294,19 @@ def country(countrycode):
         html1 = 'data:image/png;base64,{}'
         html1 = html1.format(encoded)
     else:
-        # rc('font', weight='bold')
         fig, ax = plt.subplots(figsize=(12, 8.5))
-        # rc('font', weight='bold')
         sns.barplot(x='citizenship', y='Total_mau', data=df[df['Total_mau']>1000].sort_values('Total_mau', ascending=False).head(10),
                 palette=sns.color_palette("GnBu_d"))
         ax.set_xlabel('', labelpad=15)
         plt.xticks(rotation=30)
         ax.set_ylabel('Monthly Active Users', labelpad=20, fontsize=16)
-
-        # ax.axis('off')
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.spines['bottom'].set_visible(False)
-        # ax.spines['left'].set_visible(False)
         plt.savefig('static/plotcountry1{}.png'.format(countrycode), transparent=True)
         plt.close()
         encoded = base64.b64encode(open('static/plotcountry1{}.png'.format(countrycode), 'rb').read()).decode()
         html1 = 'data:image/png;base64,{}'.format(encoded)
-         # os.remove('static/plotcountry1{}.png'.format(countrycode))
-
-    # fig, ax = plt.subplots(figsize=(9.5, 6))
-    #
-    # male=10
-    # female=10
-    # ax.pie([male,female], labels=['male', 'female'], autopct='%1.1f%%', shadow=True, startangle=90)
-    # plt.savefig('myfig.png', transparent = True)
-    # plt.close()
-    # encoded = base64.b64encode(open('myfig.png', 'rb').read()).decode()
-    # html2 = 'data:image/png;base64,{}'.format(encoded)
-    # os.remove('myfig.png')
-
-
     url = 'http://data.un.org/en/iso/{}.html'.format(countrycode)
     countryData = requests.get(url).text
     soup = BeautifulSoup(countryData, 'lxml')
@@ -365,6 +342,22 @@ def country(countrycode):
 @app.route('/maps/<countrycode>')
 def maps(countrycode):
     return render_template("maps/{}.html".format(countrycode))
+
+@app.route('/maps2/<countrycode>')
+def maps2(countrycode):
+    df = pd.read_csv('static/AllMigrants2.csv')
+    df = df.reset_index()
+    df = df[~df["Location"].isin(["Locals", "All ", "All"])]
+    country = mapping.convert_country_code(countrycode)
+
+    bmap = plotmap.BaseMap(data=df, shapefile='../places.geojson')
+    bmap.createGroup('Gender')
+    g = plotmap.Geojson(bmap, 'Gender', 'Total', country, locationcol='Location')
+    g.colorMap(column1=country)
+    g.createMap(key='name')
+    bmap.groupedLayerControl(['Gender'])
+    mapnavbar.FloatImage().add_to(bmap.map)
+    return render_template_string(bmap.map.get_root().render())
 
 @app.route('/map/<countrycode>')
 def map(countrycode):
