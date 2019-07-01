@@ -281,36 +281,53 @@ def country(countrycode):
 
     df = pd.read_csv(path)
     df = df[df['citizenship'].apply(lambda x: x not in set(['All', 'Locals']))]
-    fig, ax = plt.subplots(figsize=(10, 7))
-    # df[df['Total_mau']>1000].set_index('citizenship').sort_values('Total_mau', ascending=False).head(10)['Total_mau'][::-1].plot(kind='barh')
-    sns.barplot(x='citizenship', y='Total_mau', data=df[df['Total_mau']>1000].sort_values('Total_mau', ascending=False).head(10),
+
+    print(df[df['Total_mau']>1000].sort_values('Total_mau', ascending=False).head(10))
+    print(len(df[df['Total_mau']>1000].sort_values('Total_mau', ascending=False).head(10)))
+    print('dfdkjgfkjgbfkg')
+
+    if df[df['Total_mau']>1000].empty:
+        fig, ax = plt.subplots(figsize=(9.5, 6))
+        ax.set_xlabel('Data insufficient', labelpad=15)
+        rc('font', weight='bold')
+        # plt.rcParams.update({'font.size': 20})
+        ax.set_ylabel('', labelpad=30)
+        ax.set_yticks([])
+        ax.set_xticks([0])
+        plt.savefig('static/plot.png', transparent=True)
+        plt.close()
+        encoded = base64.b64encode(open('static/plot.png', 'rb').read()).decode()
+        html1 = 'data:image/png;base64,{}'
+        html1 = html1.format(encoded)
+    else:
+        fig, ax = plt.subplots(figsize=(10, 7))
+        sns.barplot(x='citizenship', y='Total_mau', data=df[df['Total_mau']>1000].sort_values('Total_mau', ascending=False).head(10),
                 palette=sns.color_palette("GnBu_d"))
+        ax.set_xlabel('', labelpad=15)
+        plt.xticks(rotation=40)
+        ax.set_ylabel('', labelpad=30)
 
-    ax.set_xlabel('', labelpad=15)
-    plt.xticks(rotation=40)
-    ax.set_ylabel('', labelpad=30)
+        # ax.axis('off')
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['bottom'].set_visible(False)
+        # ax.spines['left'].set_visible(False)
+        plt.savefig('static/plotcountry1{}.png'.format(countrycode), transparent=True)
+        plt.close()
+        encoded = base64.b64encode(open('static/plotcountry1{}.png'.format(countrycode), 'rb').read()).decode()
+        html1 = 'data:image/png;base64,{}'.format(encoded)
+         # os.remove('static/plotcountry1{}.png'.format(countrycode))
 
-    # ax.axis('off')
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.spines['bottom'].set_visible(False)
-    # ax.spines['left'].set_visible(False)
-    plt.savefig('static/plotcountry1{}.png'.format(countrycode), transparent=True)
-    plt.close()
-    encoded = base64.b64encode(open('static/plotcountry1{}.png'.format(countrycode), 'rb').read()).decode()
-    html1 = 'data:image/png;base64,{}'.format(encoded)
-    # os.remove('static/plotcountry1{}.png'.format(countrycode))
-
-    fig, ax = plt.subplots(figsize=(9.5, 6))
-
-    male=10
-    female=10
-    ax.pie([male,female], labels=['male', 'female'], autopct='%1.1f%%', shadow=True, startangle=90)
-    plt.savefig('myfig.png', transparent = True)
-    plt.close()
-    encoded = base64.b64encode(open('myfig.png', 'rb').read()).decode()
-    html2 = 'data:image/png;base64,{}'.format(encoded)
-    os.remove('myfig.png')
+    # fig, ax = plt.subplots(figsize=(9.5, 6))
+    #
+    # male=10
+    # female=10
+    # ax.pie([male,female], labels=['male', 'female'], autopct='%1.1f%%', shadow=True, startangle=90)
+    # plt.savefig('myfig.png', transparent = True)
+    # plt.close()
+    # encoded = base64.b64encode(open('myfig.png', 'rb').read()).decode()
+    # html2 = 'data:image/png;base64,{}'.format(encoded)
+    # os.remove('myfig.png')
 
 
     url = 'http://data.un.org/en/iso/{}.html'.format(countrycode)
@@ -342,7 +359,7 @@ def country(countrycode):
             if i == 5:
                 i = 1
     attribute, value = lists[0], lists[1]
-    return render_template("countryinfo.html", cc=countrycode, country=country, attribute=attribute, value=value, length=len(attribute), htmlstring1=html1, htmlstring2=html1, htmlstring3=html2)
+    return render_template("countryinfo.html", cc=countrycode, country=country, attribute=attribute, value=value, length=len(attribute), htmlstring1=html1, htmlstring2=html1)
 
 
 @app.route('/maps/<countrycode>')
