@@ -199,13 +199,12 @@ def plotpie():
 
 def donutpie(group_names, group_size, subgroup_names, subgroup_size, color, subcolor):
     # a, b, c = [plt.cm.Blues, plt.cm.Reds, plt.cm.Greens]
-    fig, ax = plt.subplots(figsize=(3.2, 3.2))
-    # plt.rcParams.update({'font.size': 20})
-    # ax.axis('equal')
-    mypie, _ = ax.pie(group_size, radius=1.3, labels=group_names, colors=color)
+    fig, ax = plt.subplots(figsize=(6.5, 6.5))
+    mypie, _ = ax.pie(group_size, radius=1.2, labels=group_names, colors=color, labeldistance=0.8,
+                      textprops={'fontsize': 22})
     plt.setp(mypie, width=0.3, edgecolor='white')
-    mypie2, _ = ax.pie(subgroup_size, radius=1.3 - 0.3, labels=subgroup_names, labeldistance=0.7,
-                       colors=subcolor)
+    mypie2, _ = ax.pie(subgroup_size, radius=1.2 - 0.3, labels=subgroup_names, labeldistance=0.5,
+                       colors=subcolor, textprops={'fontsize': 18})
     plt.setp(mypie2, width=0.4, edgecolor='white')
     plt.margins(0, 0)
     plt.savefig('static/myfig.png', transparent=True)
@@ -224,18 +223,18 @@ def explore():
     maindf = pd.read_csv(path)
     df = maindf.set_index('citizenship')
     a, b, c, d = [plt.cm.Blues, plt.cm.Reds, plt.cm.Greens, plt.cm.Oranges]
-    pie1 = donutpie(['Locals', 'All Expats'], [df.loc['Locals', 'Total_mau'], df.loc['All', 'Total_mau']],
+    pie1 = donutpie(['Locals', 'Expats'], [df.loc['Locals', 'Total_mau'], df.loc['All', 'Total_mau']],
                     ['Male', 'Female', 'Male', 'Female'],
                     [df.loc['Locals', 'Male_mau'], df.loc['Locals', 'Female_mau'], df.loc['All', 'Male_mau'], df.loc['All', 'Female_mau']],
                     [a(0.6), b(0.6)], [a(0.5), a(0.4), b(0.5), b(0.4)])
 
-    pie2 = donutpie(['Locals', 'All Expats'], [df.loc['Locals', 'Total_mau'], df.loc['All', 'Total_mau']],
+    pie2 = donutpie(['Locals', 'Expats'], [df.loc['Locals', 'Total_mau'], df.loc['All', 'Total_mau']],
                     ['iOS', 'Anroid', 'Others', 'iOS', 'Android', 'Others'],
                     [df.loc['Locals', 'iOS_mau'], df.loc['Locals', 'Android_mau'], df.loc['Locals', 'Other_mau'], df.loc['All', 'iOS_mau'],
                      df.loc['All', 'Android_mau'], df.loc['All', 'Other_mau']],
                     [c(0.6), a(0.6)], [c(0.5), c(0.4), c(0.2), a(0.5), a(0.4),a(0.2)])
 
-    pie3 = donutpie(['Locals', 'All Expats'], [df.loc['Locals', 'Total_mau'], df.loc['All', 'Total_mau']],
+    pie3 = donutpie(['Locals', 'Expats'], [df.loc['Locals', 'Total_mau'], df.loc['All', 'Total_mau']],
                     ['Graduated', 'High School', 'No Degree', 'Graduated', 'High School', 'No Degree'],
                     [df.loc['Locals', 'Graduated_mau'], df.loc['Locals', 'High_School_mau'], df.loc['Locals', 'No_Degree_mau'],
                      df.loc['All', 'Graduated_mau'],df.loc['All', 'High_School_mau'], df.loc['All', 'No_Degree_mau']],
