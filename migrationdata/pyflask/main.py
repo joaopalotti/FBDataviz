@@ -7,6 +7,7 @@ import requests
 import os
 import base64
 import matplotlib
+import re
 matplotlib.use("Agg")
 from matplotlib import pyplot as plt
 from matplotlib import rc
@@ -86,9 +87,6 @@ def plotgraph():
     tempdf.at[tempdf[tempdf["citizenship"] == locals_str].index[0], "citizenship"] = "Locals"
     tempdf = tempdf[~tempdf["citizenship"].isin(["Locals", "All ", "All"])]
     tempdf = tempdf[tempdf["mau_audience"] > 1000]
-
-    # if relative=='on':
-    #     tempdf[mau_audience]
 
     if tempdf.empty:
         fig, ax = plt.subplots(figsize=(9.5, 6))
@@ -285,7 +283,7 @@ def country(countrycode):
     df = df[df['citizenship'].apply(lambda x: x not in set(['All', 'Locals']))]
 
     if df[df['Total_mau']>1000].empty:
-        rc('font', weight='bold')
+        # rc('font', weight='bold')
         fig, ax = plt.subplots(figsize=(9.5, 6))
         # rc('font', weight='bold')
         ax.set_xlabel('Data insufficient', labelpad=15)
@@ -300,7 +298,7 @@ def country(countrycode):
         html1 = 'data:image/png;base64,{}'
         html1 = html1.format(encoded)
     else:
-        rc('font', weight='bold')
+        # rc('font', weight='bold')
         fig, ax = plt.subplots(figsize=(12, 8.5))
         # rc('font', weight='bold')
         sns.barplot(x='citizenship', y='Total_mau', data=df[df['Total_mau']>1000].sort_values('Total_mau', ascending=False).head(10),
@@ -343,7 +341,7 @@ def country(countrycode):
         elif i == 3:
             text = tag.text
             if ((isdigit2(text))&(text[1:].find('-')==-1)):
-                text = text.replace('a', '').replace('b', '').replace('c', '').replace('d', '').replace('e','').replace('f', '').replace('g', '').replace(',','').replace(' ', '')
+                text = re.sub(r"\D", "", text)
             lists[1].append(text)
         i += 1
         if i == 4:
@@ -355,7 +353,7 @@ def country(countrycode):
             elif i == 4:
                 text = tag.text
                 if (isdigit2(text)):
-                    text = text.replace('a', '').replace('b', '').replace('c', '').replace('d', '').replace('e','').replace('f', '').replace('g', '').replace(',', '').replace(' ', '')
+                    text = re.sub(r"\D", "", text)
                 lists[1].append(text)
             i += 1
             if i == 5:
