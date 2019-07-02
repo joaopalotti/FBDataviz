@@ -346,19 +346,21 @@ def maps(countrycode):
 @app.route('/emigration/<countrycode>')
 def emigration(countrycode):
     country = mapping.convert_country_code(countrycode)
-    check = pd.read_csv('static/AllMigrants2.csv')
-    if country in check.columns:
-        df = pd.read_csv('static/Emigration/{}.csv'.format(country))
-        bmap = plotmap.BaseMap(data=df, shapefile='../places.geojson')
-        bmap.createGroup('Gender')
-        g = plotmap.Geojson(bmap, 'Gender', 'Total', country, locationcol='Location')
-        g.colorMap(column1='Total_mau')
-        g.createMap(key='name')
-        bmap.groupedLayerControl(['Gender'])
-        mapnavbar.FloatImage().add_to(bmap.map)
-        return render_template_string(bmap.map.get_root().render())
-    else:
-        return render_template_string("Information not available.")
+    return render_template('EmigrationMaps/{}.html'.format(country))
+    # country = mapping.convert_country_code(countrycode)
+    # check = pd.read_csv('static/AllMigrants2.csv')
+    # if country in check.columns:
+    #     df = pd.read_csv('static/Emigration/{}.csv'.format(country))
+    #     bmap = plotmap.BaseMap(data=df, shapefile='../places.geojson')
+    #     bmap.createGroup('Gender')
+    #     g = plotmap.Geojson(bmap, 'Gender', 'Total', country, locationcol='Location')
+    #     g.colorMap(column1='Total_mau')
+    #     g.createMap(key='name')
+    #     bmap.groupedLayerControl(['Gender'])
+    #     mapnavbar.FloatImage().add_to(bmap.map)
+    #     return render_template_string(bmap.map.get_root().render())
+    # else:
+    #     return render_template_string("Information not available.")
 
 
 @app.route('/map/<countrycode>')
