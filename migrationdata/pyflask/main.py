@@ -41,16 +41,22 @@ def plotgraph():
     scholarities = request.args.get('scholarities')
     os_var = request.args.get('os')
     countrycode = request.args.get('cc')
-    # relative = request.args.get('relative')
+    relative = request.args.get('relative')
     path = glob('./static/original/%s_dataframe_collected_finished_*.csv.gz' % (countrycode))[0]
     maindf = pd.read_csv(path)
+    # We make a copy of the dataframe, this way we can alter it later
+    tempdf = maindf.dropna(subset=['citizenship']).copy()
+    tempdf["citizenship"] = tempdf["citizenship"].apply(lambda s: s[s.find("(") + 1:s.find(")")])
+    totaldf = tempdf[(tempdf['ages_ranges'] == "{u'min': 13}") & (tempdf['genders'] == 0) & (tempdf['scholarities'].isnull()) & (tempdf['access_device'].isnull())]
+    totaldf = totaldf[['citizenship', 'mau_audience']]
+    totaldf.columns = ['citizenship', 'total']
 
     if gender == 'both':
-        tempdf = maindf[(maindf['genders'] == 0) & (maindf['ages_ranges'] == "{u'min': 13}")]
+        tempdf = tempdf[(tempdf['genders'] == 0) & (tempdf['ages_ranges'] == "{u'min': 13}")]
     elif gender == 'male':
-        tempdf = maindf[(maindf['genders'] == 1) & (maindf['ages_ranges'] == "{u'min': 13}")]
+        tempdf = tempdf[(tempdf['genders'] == 1) & (tempdf['ages_ranges'] == "{u'min': 13}")]
     elif gender == 'female':
-        tempdf = maindf[(maindf['genders'] == 2) & (maindf['ages_ranges'] == "{u'min': 13}")]
+        tempdf = tempdf[(tempdf['genders'] == 2) & (tempdf['ages_ranges'] == "{u'min': 13}")]
     else:
         print("ERROR!!!! You forgot to select a gender.")
 
@@ -78,15 +84,15 @@ def plotgraph():
 
     tempdf = tempdf[['citizenship', 'mau_audience']]
 
-    # We make a copy of the dataframe, this way we can alter it later
-    tempdf = tempdf.dropna(subset=['citizenship']).copy()
-
-    tempdf["citizenship"] = tempdf["citizenship"].apply(lambda s: s[s.find("(")+1:s.find(")")])
-
     locals_str = "{u'not': [6015559470583], u'name': u'All - Expats'"
     tempdf.at[tempdf[tempdf["citizenship"] == locals_str].index[0], "citizenship"] = "Locals"
     tempdf = tempdf[~tempdf["citizenship"].isin(["Locals", "All ", "All"])]
     tempdf = tempdf[tempdf["mau_audience"] > 1000]
+
+    if relative == 'on':
+        tempdf = tempdf.set_index('citizenship').join(totaldf.set_index('citizenship')).reset_index()
+        tempdf['mau_audience'] = (100 * tempdf['mau_audience'] ) / tempdf['total']
+        # print(tempdf.sort_values('mau_audience', ascending=False).head(10))
 
     if tempdf.empty:
         fig, ax = plt.subplots(figsize=(9.5, 6))
@@ -99,27 +105,23 @@ def plotgraph():
         encoded = base64.b64encode(open('static/plot.png', 'rb').read()).decode()
         plothtml = 'data:image/png;base64,{}'
         plothtml = plothtml.format(encoded)
-
     else:
-        # fig, ax = plt.subplots(figsize=(9.5, 6))
         fig, ax = plt.subplots(figsize=(12, 8.5))
 
         sns.barplot(x='citizenship', y='mau_audience',
-                    data=tempdf[tempdf['mau_audience'] > 1000].sort_values('mau_audience', ascending=False).head(10),
+                    data=tempdf.sort_values('mau_audience', ascending=False).head(10),
                     palette=sns.color_palette("YlGnBu"))
         ax.set_xlabel('', labelpad=15)
         plt.xticks(rotation=30)
-        ax.set_ylabel('Monthly Active Users', labelpad=20, fontsize=16)
+        if relative == 'on':
+            ax.set_ylabel('Percentage of expats with given conditions for a given country', labelpad=20, fontsize=16)
+        else:
+            ax.set_ylabel('Monthly Active Users', labelpad=20, fontsize=16)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.spines['bottom'].set_visible(False)
         plt.xticks(rotation=40)
-        # image = io.StringIO()
-        # plt.savefig(image, transparent=True)
-        # fig = plt.figure()
-        # fig.canvas.draw()
         plt.savefig('static/plot.png', transparent=True)
-        # encoded = base64.b64encode(open(image, 'rb').read()).decode()
         plt.close()
         encoded = base64.b64encode(open('static/plot.png', 'rb').read()).decode()
         plothtml = 'data:image/png;base64,{}'
@@ -149,7 +151,7 @@ def plotpie():
             female=df.loc[1]['Female_mau']-df.loc[0]['Female_mau']
         ax.pie([male,female], labels=['male', 'female'], autopct='%1.1f%%', shadow=True, startangle=90)
         plt.savefig('myfig.png', transparent = True)
-        encoded = b64encode(open('myfig.png', 'rb').read()).decode()
+        encoded = base64.b64encode(open('myfig.png', 'rb').read()).decode()
 
     if category=='Education':
         if location=='All':
@@ -164,7 +166,8 @@ def plotpie():
             Graduated=df.loc[1]['Graduated_mau']-df.loc[0]['Graduated_mau']
             High_School=df.loc[1]['High_School_mau']-df.loc[0]['High_School_mau']
             No_Degree=df.loc[1]['No_Degree_mau']-df.loc[0]['No_Degree_mau']
-        ax.pie([Graduated,High_School, No_Degree], labels=['Graduated', 'High_School', 'No_Degree'], autopct='%1.1f%%', shadow=True, startangle=90)
+        ax.pie([Graduated,High_School, No_Degree], labels=['Graduated', 'High_School', 'No_Degree'], autopct='%1.1f%%',
+               shadow=True, startangle=90)
         plt.savefig('myfig.png', transparent = True)
         encoded = b64encode(open('myfig.png', 'rb').read()).decode()
             
@@ -183,7 +186,7 @@ def plotpie():
             android=df.loc[1]['Android_mau']-df.loc[0]['Android_mau']
         ax.pie([other,ios, android], labels=['other', 'ios', 'android'], autopct='%1.1f%%', shadow=True, startangle=90)
         plt.savefig('myfig.png', transparent = True)
-        encoded = b64encode(open('myfig.png', 'rb').read()).decode()
+        encoded = base64.b64encode(open('myfig.png', 'rb').read()).decode()
         
 
     piehtml = 'data:image/png;base64,{}'
@@ -221,18 +224,21 @@ def explore():
     a, b, c, d = [plt.cm.Blues, plt.cm.Reds, plt.cm.Greens, plt.cm.Oranges]
     pie1 = donutpie(['Locals', 'Expats'], [df.loc['Locals', 'Total_mau'], df.loc['All', 'Total_mau']],
                     ['Male', 'Female', 'Male', 'Female'],
-                    [df.loc['Locals', 'Male_mau'], df.loc['Locals', 'Female_mau'], df.loc['All', 'Male_mau'], df.loc['All', 'Female_mau']],
+                    [df.loc['Locals', 'Male_mau'], df.loc['Locals', 'Female_mau'], df.loc['All', 'Male_mau'],
+                     df.loc['All', 'Female_mau']],
                     [a(0.6), b(0.6)], [a(0.5), a(0.4), b(0.5), b(0.4)])
 
     pie2 = donutpie(['Locals', 'Expats'], [df.loc['Locals', 'Total_mau'], df.loc['All', 'Total_mau']],
                     ['iOS', 'Anroid', 'Others', 'iOS', 'Android', 'Others'],
-                    [df.loc['Locals', 'iOS_mau'], df.loc['Locals', 'Android_mau'], df.loc['Locals', 'Other_mau'], df.loc['All', 'iOS_mau'],
+                    [df.loc['Locals', 'iOS_mau'], df.loc['Locals', 'Android_mau'], df.loc['Locals', 'Other_mau'],
+                     df.loc['All', 'iOS_mau'],
                      df.loc['All', 'Android_mau'], df.loc['All', 'Other_mau']],
                     [c(0.6), a(0.6)], [c(0.5), c(0.4), c(0.2), a(0.5), a(0.4),a(0.2)])
 
     pie3 = donutpie(['Locals', 'Expats'], [df.loc['Locals', 'Total_mau'], df.loc['All', 'Total_mau']],
                     ['Graduated', 'High School', 'No Degree', 'Graduated', 'High School', 'No Degree'],
-                    [df.loc['Locals', 'Graduated_mau'], df.loc['Locals', 'High_School_mau'], df.loc['Locals', 'No_Degree_mau'],
+                    [df.loc['Locals', 'Graduated_mau'], df.loc['Locals', 'High_School_mau'],
+                     df.loc['Locals', 'No_Degree_mau'],
                      df.loc['All', 'Graduated_mau'],df.loc['All', 'High_School_mau'], df.loc['All', 'No_Degree_mau']],
                     [d(0.6), c(0.6)], [d(0.5), d(0.4), d(0.2), c(0.5), c(0.4), c(0.2)])
     #stacked barplot
@@ -258,7 +264,8 @@ def explore():
     encoded = base64.b64encode(open('static/myfig.png', 'rb').read()).decode()
     barhtml = 'data:image/png;base64,{}'
     barhtml = barhtml.format(encoded)
-    return render_template("explore.html", country=country, pie1=pie1, pie2=pie2, pie3=pie3, bar1=barhtml, countrycode=countrycode)
+    return render_template("explore.html", country=country, pie1=pie1, pie2=pie2, pie3=pie3,
+                           bar1=barhtml, countrycode=countrycode)
 
 
 def isdigit2(inputString):
@@ -286,7 +293,8 @@ def country(countrycode):
         html1 = html1.format(encoded)
     else:
         fig, ax = plt.subplots(figsize=(12, 8.5))
-        sns.barplot(x='citizenship', y='Total_mau', data=df[df['Total_mau']>1000].sort_values('Total_mau', ascending=False).head(10),
+        sns.barplot(x='citizenship', y='Total_mau', data=df[df['Total_mau']>1000].sort_values('Total_mau',
+                                                                                              ascending=False).head(10),
                 palette=sns.color_palette("GnBu_d"))
         ax.set_xlabel('', labelpad=15)
         plt.xticks(rotation=30)
@@ -327,7 +335,8 @@ def country(countrycode):
             if i == 5:
                 i = 1
     attribute, value = lists[0], lists[1]
-    return render_template("countryinfo.html", cc=countrycode, country=country, attribute=attribute, value=value, length=len(attribute), htmlstring1=html1, htmlstring2=html1)
+    return render_template("countryinfo.html", cc=countrycode, country=country, attribute=attribute,
+                           value=value, length=len(attribute), htmlstring1=html1, htmlstring2=html1)
 
 
 @app.route('/maps/<countrycode>')
@@ -419,10 +428,7 @@ def map(countrycode):
     f.addFacts(['Total_mau', 'Other_mau', 'iOS_mau', 'Android_mau'], ('Other', 'iOS', 'Android'),'trophy.png', 'phone.png')
 
     bmap.groupedLayerControl(['Gender','Facts'])'''
-    # folium.LayerControl().add_to(bmap.map)
-    # bmap.map = mapnavbar.addNavBar(bmap.map)
     mapnavbar.FloatImage().add_to(bmap.map)
-    # bmap.map.save(os.path.join('results', 'FloatImage.html'))
     return render_template_string(bmap.map.get_root().render())
 
 @app.route('/about')

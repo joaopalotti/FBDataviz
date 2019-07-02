@@ -72,7 +72,6 @@
 
 
             <!-- Modal for image explanation -->
-            <!--<button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg">Large modal</button>-->
 
             <div class="modal fade bd-example-modal-lg show" id="bd-example-modal-lg2" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
               <div class="modal-dialog modal-lg show">
@@ -188,10 +187,10 @@ $("#explore").click(function(){
                             <label><input type="radio" name="os" value="all" checked="checked"> All</label>
                         </div>
                         <br>
-                        <!--<div class="custom-control custom-switch" style="vertical-align:'center';">
+                        <div class="custom-control custom-switch" style="vertical-align:'center';">
                           <input type="checkbox" class="custom-control-input" name="rel" id="relative">
                           <label class="custom-control-label" for="relative">Relative</label>
-                        </div>-->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -214,10 +213,11 @@ $("#plotbtn").click(function(){
     var gender = $("input[name='gender']:checked").val();
     var scholarities = $("input[name='scholarities']:checked").val();
     var os_var = $("input[name='os']:checked").val();
-    $.ajax({
+    var relative = $("input[name='rel']:checked").val();
+   $.ajax({
       url: "../../plotgraph",
       type: "get",
-      data: {gender: gender, scholarities: scholarities, os: os_var, cc: '{{cc}}'},
+      data: {gender: gender, scholarities: scholarities, os: os_var, cc: '{{cc}}', relative: relative},
       success: function(response) {
         $("#plot").html(response);
         $("#plottext").html('<div style="font-size:18px;"> Gender: ' +gender+ ' <b>|</b> Scholarities: '+scholarities+' <b>|</b> OS: '+os_var+' </div>');
