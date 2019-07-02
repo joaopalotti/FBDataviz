@@ -43,6 +43,7 @@ mapping = {
     "CN": "China",
     "CO": "Colombia",
     "CR": "Costa Rica",
+    "CU": "Cuba",
     "CV": "Cape Verde",
     "CW": "Curacao",
     "CY": "Cyprus",
