@@ -195,7 +195,6 @@ def plotpie():
     return render_template('plotpie.html', pie=piehtml, location=location, category=category)
 
 def donutpie(group_names, group_size, subgroup_names, subgroup_size, color, subcolor):
-    # a, b, c = [plt.cm.Blues, plt.cm.Reds, plt.cm.Greens]
     fig, ax = plt.subplots(figsize=(6.5, 6.5))
     mypie, _ = ax.pie(group_size, radius=1.2, labels=group_names, colors=color, labeldistance=0.8,
                       textprops={'fontsize': 22})
@@ -241,7 +240,6 @@ def explore():
     # rc('font', weight='bold')
     mdf = maindf[maindf['citizenship'].apply(lambda x: x not in set(['All', 'Locals']))]
     mdf = mdf[mdf['Total_mau'] > 1000].sort_values('Total_mau', ascending=False).set_index('citizenship').head(10)
-    # bars1 = [df.loc['Locals', 'Male_mau'], df.loc['All', 'Male_mau']]
     bars2 = [ mdf.loc[i, 'Male_mau'] for i in mdf.index.values ]
     bars1 = [mdf.loc[i, 'Female_mau'] for i in mdf.index.values ]
     r = [i for i in range(len(mdf.index.values))]
@@ -254,7 +252,6 @@ def explore():
     ax.spines['right'].set_visible(False)
     # ax.spines['bottom'].set_visible(False)
     plt.xticks(r, names, fontweight='bold', rotation=40)
-    # plt.xlabel("")
     plt.legend()
     plt.savefig('static/myfig.png', transparent=True)
     plt.close()
@@ -264,8 +261,6 @@ def explore():
     return render_template("explore.html", country=country, pie1=pie1, pie2=pie2, pie3=pie3, bar1=barhtml, countrycode=countrycode)
 
 
-#Using this function to remove the characters in the end
-#Can we alternatively use re?
 def isdigit2(inputString):
     return any(char.isdigit() for char in inputString)
 
@@ -338,22 +333,6 @@ def country(countrycode):
 @app.route('/maps/<countrycode>')
 def maps(countrycode):
     return render_template("maps/{}.html".format(countrycode))
-
-@app.route('/maps2/<countrycode>')
-def maps2(countrycode):
-    df = pd.read_csv('static/AllMigrants2.csv')
-    df = df.reset_index()
-    df = df[~df["Location"].isin(["Locals", "All ", "All"])]
-    country = mapping.convert_country_code(countrycode)
-
-    bmap = plotmap.BaseMap(data=df, shapefile='../places.geojson')
-    bmap.createGroup('Gender')
-    g = plotmap.Geojson(bmap, 'Gender', 'Total', country, locationcol='Location')
-    g.colorMap(column1=country)
-    g.createMap(key='name')
-    bmap.groupedLayerControl(['Gender'])
-    mapnavbar.FloatImage().add_to(bmap.map)
-    return render_template_string(bmap.map.get_root().render())
 
 @app.route('/emigration/<countrycode>')
 def emigration(countrycode):
@@ -445,26 +424,6 @@ def map(countrycode):
     mapnavbar.FloatImage().add_to(bmap.map)
     # bmap.map.save(os.path.join('results', 'FloatImage.html'))
     return render_template_string(bmap.map.get_root().render())
-
-
-@app.route('/Qatar2')
-def Qatar2():
-    df = pd.read_csv('static/QatarMigration.csv')
-    m = folium.Map(location=[0, 0], zoom_start=3)
-    vdict = df[df['Total_dau'] >= 0].set_index('citizenship')['Total_dau']
-    geodata = json.load(open('static/QatarMigration.geojson'))
-    folium.GeoJson(geodata,
-                   style_function=lambda feature: {
-                       'fillColor': 'cyan' if feature['properties']['citizenship'] in vdict else 'grey',
-                       'color': 'black' if feature['properties']['citizenship'] in vdict else 'grey',
-                       'weight': 1,
-                       'fillOpacity': 1 if feature['properties']['citizenship'] in vdict else 0},
-                   tooltip=folium.features.GeoJsonTooltip(fields=['citizenship'],
-                                                          labels=False,
-                                                          sticky=False)).add_to(m)
-    m.save('templates/Country.html')
-    return render_template("Country.html")
-
 
 @app.route('/about')
 def about():
