@@ -187,11 +187,8 @@ def plotpie():
         
 
     piehtml = 'data:image/png;base64,{}'
-
     # piehtml = pietml.format(encoded)
     # plt.close()
-    #os.remove('myfig.png')
-
     piehtml = piehtml.format(encoded)
     os.remove('myfig.png')
 
@@ -357,6 +354,24 @@ def maps2(countrycode):
     bmap.groupedLayerControl(['Gender'])
     mapnavbar.FloatImage().add_to(bmap.map)
     return render_template_string(bmap.map.get_root().render())
+
+@app.route('/emigration/<countrycode>')
+def emigration(countrycode):
+    country = mapping.convert_country_code(countrycode)
+    check = pd.read_csv('static/AllMigrants2.csv')
+    if country in check.columns:
+        df = pd.read_csv('static/Emigration/{}.csv'.format(country))
+        bmap = plotmap.BaseMap(data=df, shapefile='../places.geojson')
+        bmap.createGroup('Gender')
+        g = plotmap.Geojson(bmap, 'Gender', 'Total', country, locationcol='Location')
+        g.colorMap(column1='Total_mau')
+        g.createMap(key='name')
+        bmap.groupedLayerControl(['Gender'])
+        mapnavbar.FloatImage().add_to(bmap.map)
+        return render_template_string(bmap.map.get_root().render())
+    else:
+        return render_template_string("Information not available.")
+
 
 @app.route('/map/<countrycode>')
 def map(countrycode):
