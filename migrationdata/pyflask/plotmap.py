@@ -195,12 +195,11 @@ class Geojson():
 <div class='legend-title'>Migrants From Each Country</div>
 <div class='legend-scale'>
   <ul class='legend-labels'>
-    <li><span style='background:#808080;opacity:1;'></span>not enough data</li>
-    <li><span style='background:#0392cf;opacity:1;'></span>1,001 to 10,001</li>
-    <li><span style='background:#7bc043;opacity:1;'></span>10,001 to 20,001</li>
-    <li><span style='background:#fdf498 ;opacity:1;'></span>20,001 to 50,001</li>
-    <li><span style='background:#f37736;opacity:1;'></span>50,001 to 100,001</li>
-    <li><span style='background:#ee4035;opacity:1;'></span> > 100,001</li>
+    <li><span style='background:#fee5d9;opacity:1;'></span>1,001 to 10,001</li>
+    <li><span style='background:#fcae91;opacity:1;'></span>10,001 to 20,001</li>
+    <li><span style='background:#fb6a4a;opacity:1;'></span>20,001 to 50,001</li>
+    <li><span style='background:#de2d26;opacity:1;'></span>50,001 to 100,001</li>
+    <li><span style='background:#a50f15;opacity:1;'></span> > 100,001</li>
     <li><span style='background:#000000;opacity:1;'></span>""" + self.country + """</li>
 
   </ul>
@@ -262,17 +261,23 @@ class Geojson():
         self.key = key
         folium.GeoJson(self.geodata, 
                        style_function=lambda feature: {
-                         'fillColor': 'grey' if feature['properties'][self.key] not in self.vdict
+                         'fillColor': 'white' if feature['properties'][self.key] not in self.vdict
                          else 'black' if feature['properties'][self.key] == self.country
                         else 'grey' if self.vdict[feature['properties'][self.key]]<1001
-                        else '#0392cf' if self.vdict[feature['properties'][self.key]]<10001
-                        else '#7bc043' if self.vdict[feature['properties'][self.key]]<20001
-                        else '#fdf498' if self.vdict[feature['properties'][self.key]]<50001
-                        else '#f37736' if self.vdict[feature['properties'][self.key]]<100001
-                        else '#ee4035', 
+                        else '#fee5d9' if self.vdict[feature['properties'][self.key]]<10001
+                        else '#fcae91' if self.vdict[feature['properties'][self.key]]<20001
+                        else '#fb6a4a' if self.vdict[feature['properties'][self.key]]<50001
+                        else '#de2d26' if self.vdict[feature['properties'][self.key]]<100001
+                        else '#a50f15', 
       'color': 'black',
       'weight': 2 if (self.column2 != None) else 0.5,
-      'fillOpacity': 1 if feature['properties'][self.key] in self.vdict else 0},
+      'fillOpacity': 0 if feature['properties'][self.key] not in self.vdict
+                    else 0 if self.vdict[feature['properties'][self.key]]<1001
+                    else 1,
+      'opacity': 0 if feature['properties'][self.key] not in self.vdict
+                else 0 if self.vdict[feature['properties'][self.key]]<1001
+                else 1
+      },
        tooltip=folium.features.GeoJsonTooltip(fields=[self.key],
                                           labels=False,
                                           sticky=False)).add_to(self.baseMap.feature_groups[self.feature_group][self.name])
@@ -374,45 +379,45 @@ class Geojson():
             s = self.df[self.df[self.locationcol] == feature['properties'][self.key]].squeeze()
 
             if not s.empty:
+                if self.vdict[feature['properties'][self.key]]>=1001:
+                    html = "<center><h2 style='font-family: Arial, Helvetica, sans-serif;'>" + feature['properties'][self.key] + "</h2></center><center>"
+                    for i in range(len(self.absolutecolumns)):
+                        html += "<h4 style='font-family: Arial, Helvetica, sans-serif;'>"+str(round(s[self.absolutecolumns[i]], 2)) + self.absolutestring[i] + "</h4>"
 
-                html = "<center><h2 style='font-family: Arial, Helvetica, sans-serif;'>" + feature['properties'][self.key] + "</h2></center><center>"
-                for i in range(len(self.absolutecolumns)):
-                    html += "<h4 style='font-family: Arial, Helvetica, sans-serif;'>"+str(round(s[self.absolutecolumns[i]], 2)) + self.absolutestring[i] + "</h4>"
+                    for i in range(len(self.valuecolumns)):
+                        total = s[self.valuecolumns[i]].sum()
+                        value = s[self.valuecolumns[i][0]]
+                        html += "<h4 style='font-family: Arial, Helvetica, sans-serif;'>" + str(round(value/total*100., 2)) + "%" + self.valuestring[i] + "</h4>"
 
-                for i in range(len(self.valuecolumns)):
-                    total = s[self.valuecolumns[i]].sum()
-                    value = s[self.valuecolumns[i][0]]
-                    html += "<h4 style='font-family: Arial, Helvetica, sans-serif;'>" + str(round(value/total*100., 2)) + "%" + self.valuestring[i] + "</h4>"
+                    encodedlist = []
+                    for i in range(1):
+                        '''fig1, ax1 = plt.subplots(figsize=(2.5,1.5))
+                        ax1.pie([s[j] for j in self.plotcolumns[i]], labels=self.plotlabels[i], autopct='%1.1f%%', shadow=True, startangle=90)
+                        plt.savefig('myfig.png', transparent = True)
+                        plt.close()'''
+                        name=feature['properties'][self.key]
+                        
+                        encoded = b64encode(open('gender_pie/gender{}_{}.png'.format(countrycode, name), 'rb').read()).decode()
+                        encodedlist.append(encoded)
+                        html += '<img align="middle" src="data:image/png;base64,{}">'
+                        
+                        encoded = b64encode(open('os_pie/os{}_{}.png'.format(countrycode, name), 'rb').read()).decode()
+                        encodedlist.append(encoded)
+                        html += '<img align="middle" src="data:image/png;base64,{}">'
+                        
+                        encoded = b64encode(open('edu_pie/education{}_{}.png'.format(countrycode, name), 'rb').read()).decode()
+                        encodedlist.append(encoded)
+                        html += '<img align="middle" src="data:image/png;base64,{}">'
+                        
+                    html += '</center>'
 
-                encodedlist = []
-                for i in range(1):
-                    '''fig1, ax1 = plt.subplots(figsize=(2.5,1.5))
-                    ax1.pie([s[j] for j in self.plotcolumns[i]], labels=self.plotlabels[i], autopct='%1.1f%%', shadow=True, startangle=90)
-                    plt.savefig('myfig.png', transparent = True)
-                    plt.close()'''
-                    name=feature['properties'][self.key]
-                    
-                    encoded = b64encode(open('gender_pie/gender{}_{}.png'.format(countrycode, name), 'rb').read()).decode()
-                    encodedlist.append(encoded)
-                    html += '<img align="middle" src="data:image/png;base64,{}">'
-                    
-                    encoded = b64encode(open('os_pie/os{}_{}.png'.format(countrycode, name), 'rb').read()).decode()
-                    encodedlist.append(encoded)
-                    html += '<img align="middle" src="data:image/png;base64,{}">'
-                    
-                    encoded = b64encode(open('edu_pie/education{}_{}.png'.format(countrycode, name), 'rb').read()).decode()
-                    encodedlist.append(encoded)
-                    html += '<img align="middle" src="data:image/png;base64,{}">'
-                    
-                html += '</center>'
+                    geo = folium.GeoJson(feature['geometry'],
+                           style_function = lambda feature: { 'weight': 0,'fillOpacity': 0},
+                            tooltip = feature['properties'][self.key])
 
-                geo = folium.GeoJson(feature['geometry'],
-                       style_function = lambda feature: { 'weight': 0,'fillOpacity': 0},
-                        tooltip = feature['properties'][self.key])
-
-                iframe = branca.element.IFrame(html=html.format(*encodedlist), width=400, height=400)
-                folium.Popup(iframe).add_to(geo)
-                geo.add_to(self.baseMap.feature_groups[self.feature_group][self.name])
+                    iframe = branca.element.IFrame(html=html.format(*encodedlist), width=400, height=400)
+                    folium.Popup(iframe).add_to(geo)
+                    geo.add_to(self.baseMap.feature_groups[self.feature_group][self.name])
 
 class InterestingFacts():
     """Creates a map with icons showing interesting facts
