@@ -341,7 +341,7 @@ def country(countrycode):
 
 @app.route('/maps/<countrycode>')
 def maps(countrycode):
-    return render_template("maps/{}.html".format(countrycode))
+    return render_template("map/{}.html".format(countrycode))
 
 @app.route('/emigration/<countrycode>')
 def emigration(countrycode):
