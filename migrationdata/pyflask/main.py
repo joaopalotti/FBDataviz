@@ -13,11 +13,12 @@ from matplotlib import pyplot as plt
 from matplotlib import rc
 from bs4 import BeautifulSoup
 import seaborn as sns
-
+import locale
 # My functions
 import plotmap
 import mapping
 import mapnavbar
+
 
 app = Flask(__name__)
 
@@ -311,13 +312,15 @@ def country(countrycode):
     soup = BeautifulSoup(countryData, 'lxml')
     tables = soup.find_all("tbody")
     lists, i = [[], []], 1
+    locale.setlocale(locale.LC_ALL, 'en_US.UTF-8') #for 1000 separator
     for tag in tables[1].find_all('td'):
         if i == 1:
             lists[0].append(tag.text)
         elif i == 3:
             text = tag.text
             if ((isdigit2(text))&(text[1:].find('-')==-1)):
-                text = re.sub(r"\D", "", text)
+                text = int(re.sub(r"\D", "", text))
+                text = "{:n}".format(text)
             lists[1].append(text)
         i += 1
         if i == 4:
@@ -329,7 +332,8 @@ def country(countrycode):
             elif i == 4:
                 text = tag.text
                 if (isdigit2(text)):
-                    text = re.sub(r"\D", "", text)
+                    text = int(re.sub(r"\D", "", text))
+                    text = "{:n}".format(text)
                 lists[1].append(text)
             i += 1
             if i == 5:
