@@ -115,9 +115,9 @@ def plotgraph():
         ax.set_xlabel('', labelpad=15)
         plt.xticks(rotation=30)
         if relative == 'on':
-            ax.set_ylabel('Percentage of expats with given conditions for a given country', labelpad=20, fontsize=16)
+            ax.set_ylabel('Facebook Monthly Active Users (%)', labelpad=20, fontsize=16)
         else:
-            ax.set_ylabel('Monthly Active Users', labelpad=20, fontsize=16)
+            ax.set_ylabel('Facebook Monthly Active Users', labelpad=20, fontsize=16)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.spines['bottom'].set_visible(False)
@@ -299,7 +299,7 @@ def country(countrycode):
                 palette=sns.color_palette("GnBu_d"))
         ax.set_xlabel('', labelpad=15)
         plt.xticks(rotation=30)
-        ax.set_ylabel('Monthly Active Users', labelpad=20, fontsize=16)
+        ax.set_ylabel('Facebook Monthly Active Users', labelpad=20, fontsize=16)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.spines['bottom'].set_visible(False)
