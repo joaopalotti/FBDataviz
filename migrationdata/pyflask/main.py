@@ -122,7 +122,7 @@ def plotgraph():
         ax.spines['right'].set_visible(False)
         ax.spines['bottom'].set_visible(False)
         plt.xticks(rotation=15, fontsize=15.5)
-        plt.yticks(fontsize=17)
+        plt.yticks(fontsize=15.5)
         plt.savefig('static/plot.png', transparent=True)
         plt.close()
         encoded = base64.b64encode(open('static/plot.png', 'rb').read()).decode()
@@ -220,6 +220,7 @@ def donutpie(group_names, group_size, subgroup_names, subgroup_size, color, subc
 def explore():
     countrycode = request.args.get('cc')
     country = request.args.get('country')
+    emigration = request.args.get('emigration')
     path = glob('static/simplified/{}.csv.gz'.format(countrycode))[0]
     maindf = pd.read_csv(path)
     df = maindf.set_index('citizenship')
@@ -245,7 +246,6 @@ def explore():
                     [d(0.6), c(0.6)], [d(0.5), d(0.4), d(0.2), c(0.5), c(0.4), c(0.2)])
     #stacked barplot
     fig, ax = plt.subplots(figsize=(12, 7))
-    # rc('font', weight='bold')
     mdf = maindf[maindf['citizenship'].apply(lambda x: x not in set(['All', 'Locals']))]
     mdf['citizenship'] = mdf['citizenship'].apply(lambda x: x.replace(" ", "\n"))
     mdf = mdf[mdf['Total_mau'] > 1000].sort_values('Total_mau', ascending=False).set_index('citizenship').head(10)
@@ -264,8 +264,9 @@ def explore():
     encoded = base64.b64encode(open('static/myfig.png', 'rb').read()).decode()
     barhtml = 'data:image/png;base64,{}'
     barhtml = barhtml.format(encoded)
+
     return render_template("explore.html", country=country, pie1=pie1, pie2=pie2, pie3=pie3,
-                           bar1=barhtml, countrycode=countrycode)
+                           bar1=barhtml, countrycode=countrycode, emigration=emigration)
 
 
 def isdigit2(inputString):
@@ -299,7 +300,7 @@ def country(countrycode):
                 palette=sns.color_palette("GnBu_d"))
         ax.set_xlabel('', labelpad=15)
         plt.xticks(rotation=15, fontsize=15.5)
-        plt.yticks(fontsize=17)
+        plt.yticks(fontsize=15.5)
         ax.set_ylabel('Facebook Monthly Active Users', labelpad=20, fontsize=16)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
@@ -340,8 +341,15 @@ def country(countrycode):
             if i == 5:
                 i = 1
     attribute, value = lists[0], lists[1]
+
+    emigration = "1"
+    #check for emigration
+    check = pd.read_csv('static/AllMigrants2.csv')
+    if country not in check.columns:
+        emigration = "0"
+
     return render_template("countryinfo.html", cc=countrycode, country=country, attribute=attribute,
-                           value=value, length=len(attribute), htmlstring1=html1, htmlstring2=html1)
+                           value=value, length=len(attribute), htmlstring1=html1, htmlstring2=html1, emigration=emigration)
 
 
 @app.route('/maps/<countrycode>')
