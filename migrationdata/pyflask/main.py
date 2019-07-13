@@ -88,6 +88,7 @@ def plotgraph():
     locals_str = "{u'not': [6015559470583], u'name': u'All - Expats'"
     tempdf.at[tempdf[tempdf["citizenship"] == locals_str].index[0], "citizenship"] = "Locals"
     tempdf = tempdf[~tempdf["citizenship"].isin(["Locals", "All ", "All"])]
+    tempdf['citizenship'] = tempdf['citizenship'].apply(lambda x: x.replace(" ", "\n"))
     tempdf = tempdf[tempdf["mau_audience"] > 1000]
 
     if relative == 'on':
@@ -113,15 +114,15 @@ def plotgraph():
                     data=tempdf.sort_values('mau_audience', ascending=False).head(10),
                     palette=sns.color_palette("YlGnBu"))
         ax.set_xlabel('', labelpad=15)
-        plt.xticks(rotation=30)
         if relative == 'on':
-            ax.set_ylabel('Facebook Monthly Active Users (%)', labelpad=20, fontsize=16)
+            ax.set_ylabel('Facebook Monthly Active Users (%)', labelpad=20, fontsize=18)
         else:
-            ax.set_ylabel('Facebook Monthly Active Users', labelpad=20, fontsize=16)
+            ax.set_ylabel('Facebook Monthly Active Users', labelpad=20, fontsize=18)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.spines['bottom'].set_visible(False)
-        plt.xticks(rotation=40)
+        plt.xticks(rotation=15, fontsize=15.5)
+        plt.yticks(fontsize=17)
         plt.savefig('static/plot.png', transparent=True)
         plt.close()
         encoded = base64.b64encode(open('static/plot.png', 'rb').read()).decode()
@@ -246,18 +247,16 @@ def explore():
     fig, ax = plt.subplots(figsize=(12, 7))
     # rc('font', weight='bold')
     mdf = maindf[maindf['citizenship'].apply(lambda x: x not in set(['All', 'Locals']))]
+    mdf['citizenship'] = mdf['citizenship'].apply(lambda x: x.replace(" ", "\n"))
     mdf = mdf[mdf['Total_mau'] > 1000].sort_values('Total_mau', ascending=False).set_index('citizenship').head(10)
     bars2 = [ mdf.loc[i, 'Male_mau'] for i in mdf.index.values ]
     bars1 = [mdf.loc[i, 'Female_mau'] for i in mdf.index.values ]
     r = [i for i in range(len(mdf.index.values))]
     names = mdf.index.values
-    barWidth = 0.7
-    plt.bar(r, bars1, color='#bfd96a', edgecolor='white', width=barWidth, label='Female')
-    plt.bar(r, bars2, bottom=bars1, color='#3c4d4d', edgecolor='white', width=barWidth, label='Male')
-    # Custom X axis
+    plt.bar(r, bars1, color='#bfd96a', edgecolor='white', width=0.7, label='Female')
+    plt.bar(r, bars2, bottom=bars1, color='#3c4d4d', edgecolor='white', width=0.7, label='Male')
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    # ax.spines['bottom'].set_visible(False)
     plt.xticks(r, names, fontweight='bold', rotation=40)
     plt.legend()
     plt.savefig('static/myfig.png', transparent=True)
@@ -280,6 +279,7 @@ def country(countrycode):
 
     df = pd.read_csv(path)
     df = df[df['citizenship'].apply(lambda x: x not in set(['All', 'Locals']))]
+    df['citizenship'] = df['citizenship'].apply(lambda x: x.replace(" ", "\n"))
 
     if df[df['Total_mau']>1000].empty:
         fig, ax = plt.subplots(figsize=(9.5, 6))
@@ -298,7 +298,8 @@ def country(countrycode):
                                                                                               ascending=False).head(10),
                 palette=sns.color_palette("GnBu_d"))
         ax.set_xlabel('', labelpad=15)
-        plt.xticks(rotation=30)
+        plt.xticks(rotation=15, fontsize=15.5)
+        plt.yticks(fontsize=17)
         ax.set_ylabel('Facebook Monthly Active Users', labelpad=20, fontsize=16)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
