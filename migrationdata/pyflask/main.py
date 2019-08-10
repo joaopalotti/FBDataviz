@@ -347,9 +347,10 @@ def country(countrycode):
     check = pd.read_csv('static/AllMigrants2.csv')
     if country not in check.columns:
         emigration = "0"
-
+    url = 'http://data.un.org/en/iso/'+countrycode+'.html'
     return render_template("countryinfo.html", cc=countrycode, country=country, attribute=attribute,
-                           value=value, length=len(attribute), htmlstring1=html1, htmlstring2=html1, emigration=emigration)
+                           value=value, length=len(attribute), htmlstring1=html1, htmlstring2=html1,
+                           emigration=emigration, url=url)
 
 
 @app.route('/maps/<countrycode>')
