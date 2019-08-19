@@ -450,5 +450,20 @@ def map(countrycode):
 @app.route('/about')
 def about():
     return render_template("about.html")
+
+@app.route('/FAQ')
+def FAQ():
+    return render_template("FAQ.html")
+
+@app.route('/hostcountry')
+def hostcountry():
+    return render_template("hostcountry.txt")
+
+@app.route('/homecountry')
+def homecountry():
+    return render_template("homecountry.txt")
+
+
+
 if __name__ == "__main__":
     app.run(debug=True)
